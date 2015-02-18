@@ -81,7 +81,7 @@ function cr-build-cleanup()
         ${CLOUD_INIT_ISO} \
         ${SSH_KEY}.* \
         ${BUILD_IMAGE_RAW} \
-        ${CLOUD_INIT_DIR} \
+        ${CLOUD_INIT_DIR}
 }
 
 # to be used only once the guest is up and running
