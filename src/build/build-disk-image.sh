@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 TMPDIR=${TMPDIR-/tmp}
 BUILD_DIR=$(mktemp --directory --tmpdir=${TMPDIR} cloudrouter.build.image.XXXXXXXXXX)
