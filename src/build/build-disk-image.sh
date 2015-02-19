@@ -33,8 +33,7 @@ VIRT_BUILD_XML=${BUILD_DIR}/cloudrouter-build.xml
 VIRT_NETWORK_XML=${BUILD_DIR}/cloudrouter-build-network.xml
 
 function cr-virsh-network-destroy(){
-    virsh net-list | grep "${VIRT_NETWORK}" > /dev/null \
-        && virsh net-undefine ${VIRT_NETWORK} \
+    virsh net-undefine ${VIRT_NETWORK} \
         && virsh net-destroy ${VIRT_NETWORK}
 }
 
@@ -72,10 +71,13 @@ function cr-build-setup()
     sed -i s="VIRT_HOSTNAME"="${VIRT_HOSTNAME}"=g ${VIRT_BUILD_XML}
     sed -i s="VIRT_NETWORK"="${VIRT_NETWORK}"=g ${VIRT_BUILD_XML}
     sed -i s="VIRT_ARCH"="${VIRT_ARCH}"=g ${VIRT_BUILD_XML}
+
+    cr-virsh-network-create
 }
 
 function cr-build-cleanup()
 {
+    cr-virsh-network-destroy
     # remove any temporary files created
     rm -rf *.xml \
         ${CLOUD_INIT_ISO} \
@@ -99,7 +101,6 @@ function cr-virsh-set-ip(){
 }
 
 function cr-virsh-create(){
-    cr-virsh-network-create
     virsh create ${VIRT_BUILD_XML}
     echo "INFO: Waiting for guest to boot up ... " && sleep 300
     cr-virsh-set-ip
@@ -107,7 +108,6 @@ function cr-virsh-create(){
 
 function cr-virsh-destroy(){
     virsh destroy ${VIRT_BUILD_XML}
-    cr-virsh-network-destroy
 }
 
 
