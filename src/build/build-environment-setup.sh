@@ -21,6 +21,17 @@ firewall-cmd --permanent --zone=public --add-port=8080/tcp
 firewall-cmd --permanent --zone=public --add-port=22/tcp
 firewall-cmd --reload
 
+# setup selfsigned ssl
+# TODO: Make keystore generation more safe; remove default password
+KEYSTORE_PASSWORD=${KEYSTORE_PASSWORD-jenkinscloudrouter}
+KEYSTORE_FILE=var/lib/jenkins/keystore.jks
+KEYTOOL_CMD="keytool -genkey -keyalg RSA -alias selfsigned -keystore ${KEYSTORE_FILE} -storepass ${KEYSTORE_PASSWORD} -dname \"cn=ci.cloudrouter.org\""
+runuser -l jenkins -c ${KEYTOOL_CMD}
+sed -i s/"JENKINS_PORT="/"JENKINS_PORT=-1"/ /etc/sysconfig/jenkins
+echo "JENKINS_HTTPS_PORT=8443" >> /etc/sysconfig/jenkins
+echo "JENKINS_HTTPS_KEYSTORE=${KEYSTORE_FILE}" >> /etc/sysconfig/jenkins
+echo "JENKINS_HTTPS_KEYSTORE_PASSWORD=${KEYSTORE_PASSWORD}" >> /etc/sysconfig/jenkins
+
 # fire up jenkins
 chkconfig jenkins on
 systemctl start jenkins
@@ -31,3 +42,6 @@ yum --assumeyes update
 # TODO: FIX
 # PoC hack to allow jenkins to run as root for virsh magic
 echo "jenkins   ALL=(ALL)       NOPASSWD: ALL" >> /etc/sudoers
+
+# This is required to run sudo commands in jenkins workers
+echo "Defaults:jenkins !requiretty" >> /etc/sudoers
