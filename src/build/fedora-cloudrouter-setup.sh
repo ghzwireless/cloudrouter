@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-# get some detals going
-sudo yum install -y wget deltarpm
-
 # setup the cloudrouter repository
 sudo yum install --assumeyes \
     https://cloudrouter.org/repo/beta/x86_64/cloudrouter-release-1-1.noarch.rpm

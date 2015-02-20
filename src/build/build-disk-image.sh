@@ -229,6 +229,9 @@ cr-virsh-init-iso
 # Spin up the VM and wait 5 minutes for it to boot
 cr-virsh-create
 
+# install deltarpms
+$SSH_CMD "sudo yum --assumeyes install deltarpm"
+
 # update base
 $SSH_CMD "sudo yum --assumeyes update"
 
