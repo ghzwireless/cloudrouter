@@ -107,7 +107,7 @@ function cr-virsh-set-ip(){
         | cut -d ' ' -f1)
 
     # ssh command
-    SSH_CMD="ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no -t fedora@$GUEST_IP_ADDR"
+    SSH_CMD="ssh -t -i ${SSH_KEY} -o StrictHostKeyChecking=no fedora@$GUEST_IP_ADDR"
 
     # Clear old ssh known hosts
     sed -i /"${GUEST_IP_ADDR}"/d ~/.ssh/known_hosts
