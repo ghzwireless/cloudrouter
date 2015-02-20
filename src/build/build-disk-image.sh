@@ -59,6 +59,19 @@ EOF
     virsh net-start ${VIRT_HOSTNAME}
 }
 
+function cr-virsh-destroy(){
+    echo "INFO: Attempting to destroy ${VIRT_HOSTNAME} ... "
+    virsh destroy ${VIRT_HOSTNAME}
+}
+
+function cr-virsh-create(){
+    cr-virsh-destroy
+    echo "INFO: Attempting to create ${VIRT_HOSTNAME} ... "
+    virsh create ${VIRT_BUILD_XML}
+    echo "INFO: Waiting for guest to boot up ... " && sleep 300
+    cr-virsh-set-ip
+}
+
 function cr-build-setup()
 {
     # generate temporary ssh key
@@ -99,17 +112,6 @@ function cr-virsh-set-ip(){
     # Clear old ssh known hosts
     sed -i /"${GUEST_IP_ADDR}"/d ~/.ssh/known_hosts
 }
-
-function cr-virsh-create(){
-    virsh create ${VIRT_BUILD_XML}
-    echo "INFO: Waiting for guest to boot up ... " && sleep 300
-    cr-virsh-set-ip
-}
-
-function cr-virsh-destroy(){
-    virsh destroy ${VIRT_BUILD_XML}
-}
-
 
 #
 # helper function to extract named image snapshots of raw files fomr live guests
@@ -193,7 +195,7 @@ rm -rf ${FEDORA_IMAGE_RAW}
 
 # decompress raw image but keep the original for future verification
 unxz --keep ${FEDORA_IMAGE}
-cp ${FEDORA_IMAGE_RAW} ${BUILD_IMAGE_TMP}
+mv ${FEDORA_IMAGE_RAW} ${BUILD_IMAGE_TMP}
 chmod 777 ${BUILD_IMAGE_TMP}
 
 # Resize the image (+1 GB)
@@ -225,7 +227,7 @@ ${SSH_CMD} "sudo yum -y install $(cat packages-full.list | tr "\\n" " ")"
 extract-named-image full
 
 # xz compress
-xz --verbose *.raw
+xz --verbose ${BUILD_DIR}/*.raw
 
 # Shutdown VM and cleanup
 cr-virsh-destroy
