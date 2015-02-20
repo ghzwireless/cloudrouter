@@ -67,9 +67,7 @@ function cr-virsh-destroy(){
         ${SSH_CMD} 'sudo yum clean all'
 
         # clear cloud-init stuff
-        ${SSH_CMD} 'sudo rm -rf /var/lib/cloud/instances \
-            /tmp/* \
-            /etc/sudoers.d/cloud-init'
+        ${SSH_CMD} 'sudo rm -rf /var/lib/cloud/instances /tmp/* /etc/sudoers.d/*cloud-init*'
 
         # clear ssh authorzied keys last
         ${SSH_CMD} '[[ -f ~/.ssh/authorized_keys ]] && echo "" > ~/.ssh/authorized_keys'
@@ -167,7 +165,8 @@ write_files:
     - content: |
         # disable requiretty for ${FEDORA_USER}
         Defaults:${FEDORA_USER} !requiretty
-    - path: /etc/sudoers.d/cloud-init
+      path: /etc/sudoers.d/90-cloud-init-tty
+      permissions: '0440'
 ssh_authorized_keys:
     - $(cat ${SSH_KEY}.pub)
 EOF
