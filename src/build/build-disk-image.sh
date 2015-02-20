@@ -241,9 +241,9 @@ extract-named-image minimal
 ${SSH_CMD} "sudo yum -y install $(cat packages-full.list | tr "\\n" " ")"
 extract-named-image full
 
-# xz compress
-xz --verbose ${BUILD_DIR}/*.raw
-
 # Shutdown VM and cleanup
 cr-virsh-destroy
 cr-build-cleanup
+
+# xz compress
+xz --verbose ${BUILD_DIR}/*.raw
