@@ -19,6 +19,7 @@ FEDORA_CHECKSUM=Fedora-Images-${FEDORA_ARCH}-${FEDORA_VERSION}-CHECKSUM
 FEDORA_IMAGE_URL=${FEDORA_URL_PREFIX}/${FEDORA_IMAGE}
 FEDORA_CHECKSUM_URL=${FEDORA_URL_PREFIX}/${FEDORA_CHECKSUM}
 CHECKSUM_FILE=${BUILD_DIR}/${FEDORA_CHECKSUM}
+FEDORA_USER=fedora
 
 BUILD_IMAGE_RAW=${BUILD_DIR}/cloudrouter-build.raw
 BUILD_IMAGE_TMP=${BUILD_IMAGE_RAW/.raw/-tmp.raw}
@@ -33,6 +34,7 @@ VIRT_BUILD_XML=${BUILD_DIR}/cloudrouter-build.xml
 VIRT_NETWORK_XML=${BUILD_DIR}/cloudrouter-build-network.xml
 
 function cr-virsh-network-destroy(){
+    echo "INFO: Attempting to destroy network ${VIRT_NETWORK} ... "
     virsh net-undefine ${VIRT_NETWORK} \
         && virsh net-destroy ${VIRT_NETWORK}
 }
@@ -55,12 +57,23 @@ function cr-virsh-network-create(){
 EOF
 
     virsh net-define ${VIRT_NETWORK_XML}
-    virsh net-autostart ${VIRT_HOSTNAME}
-    virsh net-start ${VIRT_HOSTNAME}
+    virsh net-autostart ${VIRT_NETWORK}
+    virsh net-start ${VIRT_NETWORK}
 }
 
 function cr-virsh-destroy(){
     echo "INFO: Attempting to destroy ${VIRT_HOSTNAME} ... "
+    if [ ! -z ${GUEST_IP_ADDR} ]; then
+        ${SSH_CMD} 'sudo yum clean all'
+
+        # clear cloud-init stuff
+        ${SSH_CMD} 'sudo rm -rf /var/lib/cloud/instances \
+            /tmp/* \
+            /etc/sudoers.d/cloud-init'
+
+        # clear ssh authorzied keys last
+        ${SSH_CMD} '[[ -f ~/.ssh/authorized_keys ]] && echo "" > ~/.ssh/authorized_keys'
+    fi
     virsh destroy ${VIRT_HOSTNAME}
 }
 
@@ -122,10 +135,6 @@ function extract-named-image()
 {
     # Generate manifest and clean /tmp in guest
     ${SSH_CMD} 'rpm -qa | sort' > ${BUILD_DIR}/manifest-${1}.txt
-    ${SSH_CMD} 'sudo rm -rf /tmp/*'
-
-    # clear cloud-init stuff
-    ${SSH_CMD} 'sudo rm -rf /var/lib/cloud/instances'
 
     # undefine before blockcopying
     virsh dumpxml ${VIRT_HOSTNAME} > ${VIRT_BUILD_XML}
@@ -154,6 +163,12 @@ function cr-virsh-init-iso(){
     mkdir ${CLOUD_INIT_DIR}
     cat > ${CLOUD_INIT_DIR}/user-data << EOF
 #cloud-config
+write_files:
+    - content: |
+        # disable requiretty for ${FEDORA_USER}
+        Defaults:${FEDORA_USER} !requiretty
+    - path: /etc/sudoers.d/cloud-init
+package_upgrade: true
 ssh_authorized_keys:
     - $(cat ${SSH_KEY}.pub)
 EOF
