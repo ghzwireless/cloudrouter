@@ -117,7 +117,7 @@ function cr-build-cleanup()
 {
     cr-build-log "Cleaning up build ..."
     cr-virsh-network-destroy
-    cr-virs-destroy
+    cr-virsh-destroy
     # remove any temporary files created
     rm -rf *.xml \
         ${CLOUD_INIT_ISO} \
@@ -178,7 +178,7 @@ function extract-named-image()
     # virsh define ${VIRT_BUILD_XML}
 
     # workaround: ugly and adds 5 minutes wait
-    virsh destroy ${VIRT_HOSTNAME}
+    cr-virsh-destroy
     cp ${BUILD_IMAGE_RAW} ${BUILD_IMAGE_RAW/.raw/-${1}.raw}
     cr-virsh-create
 
