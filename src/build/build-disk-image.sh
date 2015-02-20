@@ -168,7 +168,6 @@ write_files:
         # disable requiretty for ${FEDORA_USER}
         Defaults:${FEDORA_USER} !requiretty
     - path: /etc/sudoers.d/cloud-init
-package_upgrade: true
 ssh_authorized_keys:
     - $(cat ${SSH_KEY}.pub)
 EOF
@@ -230,6 +229,9 @@ cr-virsh-init-iso
 
 # Spin up the VM and wait 5 minutes for it to boot
 cr-virsh-create
+
+# update base
+$SSH_CMD "sudo yum --assumeyes update"
 
 # workaroud tty issue when running script from host
 $SSH_CMD "echo $(base64 -w0 fedora-cloudrouter-setup.sh) | base64 -d | sudo bash"
