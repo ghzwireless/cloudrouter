@@ -11,6 +11,7 @@ chown $(whoami):qemu ${BUILD_DIR}
 FEDORA_ARCH=${FEDORA_ARCH-x86_64}
 FEDORA_VERSION=${FEDORA_VERSION-20}
 FEDORA_RELEASE=${FEDORA_RELEASE-20131211.1}
+CR_REL_RPM="https://cloudrouter.org/repo/beta/x86_64/cloudrouter-release-1-1.noarch.rpm"
 
 FEDORA_URL_PREFIX=https://dl.fedoraproject.org/pub/fedora/linux/releases/${FEDORA_VERSION}/Images/${FEDORA_ARCH}
 FEDORA_IMAGE_RAW=Fedora-${FEDORA_ARCH}-${FEDORA_VERSION}-${FEDORA_RELEASE}-sda.raw
@@ -33,10 +34,20 @@ VIRT_BUILD_XML_SRC=CloudRouter-build.xml
 VIRT_BUILD_XML=${BUILD_DIR}/cloudrouter-build.xml
 VIRT_NETWORK_XML=${BUILD_DIR}/cloudrouter-build-network.xml
 
+function cr-build-log(){
+    echo "$(date) [cr-build] $1"
+}
+
+function cr-build-error(){
+    >&2 cr-build-log "[ERROR] $1"
+    cr-build-cleanup
+    exit 1
+}
+
 function cr-virsh-network-destroy(){
-    echo "INFO: Attempting to destroy network ${VIRT_NETWORK} ... "
-    virsh net-undefine ${VIRT_NETWORK} \
-        && virsh net-destroy ${VIRT_NETWORK}
+    cr-build-log "Attempting to destroy network ${VIRT_NETWORK} if exists ... "
+    virsh net-undefine ${VIRT_NETWORK}
+    virsh net-destroy ${VIRT_NETWORK}
 }
 
 function cr-virsh-network-create(){
@@ -55,15 +66,17 @@ function cr-virsh-network-create(){
   </ip>
 </network>
 EOF
-
+    cr-build-log "Creating network named ${VIRT_NETWORK} ..."
     virsh net-define ${VIRT_NETWORK_XML}
     virsh net-autostart ${VIRT_NETWORK}
     virsh net-start ${VIRT_NETWORK}
+    cr-build-log "Network creation completed."
 }
 
 function cr-virsh-destroy(){
-    echo "INFO: Attempting to destroy ${VIRT_HOSTNAME} ... "
-    if [ ! -z ${GUEST_IP_ADDR} ]; then
+    cr-build-log "Attempting to destroy domain ${VIRT_HOSTNAME} ... "
+    if ping -c1 "${GUEST_IP_ADDR}"  > /dev/null 2>&1; then
+        cr-build-log "Guest IP active, cleaning guest ..."
         ${SSH_CMD} 'sudo yum clean all'
 
         # clear cloud-init stuff
@@ -77,15 +90,16 @@ function cr-virsh-destroy(){
 
 function cr-virsh-create(){
     cr-virsh-destroy
-    echo "INFO: Attempting to create ${VIRT_HOSTNAME} ... "
+    cr-build-log "Attempting to create domain ${VIRT_HOSTNAME} ... "
     virsh create ${VIRT_BUILD_XML}
-    echo "INFO: Waiting for guest to boot up ... " && sleep 300
+    cr-build-log "Waiting for guest to boot up ... " && sleep 300
     cr-virsh-set-ip
 }
 
 function cr-build-setup()
 {
     # generate temporary ssh key
+    cr-build-log "Generating temporary SSH key at ${SSH_KEY} ..."
     ssh-keygen -t rsa -C "build" -f ${SSH_KEY} -q -N ""
 
     # Prepare libvirt xml configuration
@@ -101,13 +115,16 @@ function cr-build-setup()
 
 function cr-build-cleanup()
 {
+    cr-build-log "Cleaning up build ..."
     cr-virsh-network-destroy
+    cr-virs-destroy
     # remove any temporary files created
     rm -rf *.xml \
         ${CLOUD_INIT_ISO} \
         ${SSH_KEY}.* \
         ${BUILD_IMAGE_RAW} \
         ${CLOUD_INIT_DIR}
+    cr-build-log "Clean up completed."
 }
 
 # to be used only once the guest is up and running
@@ -117,11 +134,20 @@ function cr-virsh-set-ip(){
         | grep "`virsh dumpxml ${VIRT_HOSTNAME} | grep "mac address"|sed "s/.*'\(.*\)'.*/\1/g"`" \
         | cut -d ' ' -f1)
 
+    if [ -z "${GUEST_IP_ADDR}" ]; then
+        cr-build-error "Could not retreive an IP address for the host."
+    else
+        cr-build-log "Found Guest IP address ${GUEST_IP_ADDR}"
+    fi
     # ssh command
     SSH_CMD="ssh -t -i ${SSH_KEY} -o StrictHostKeyChecking=no fedora@$GUEST_IP_ADDR"
+    cr-build-log "Generated SSH command: ${SSH_CMD}"
 
     # Clear old ssh known hosts
-    sed -i /"${GUEST_IP_ADDR}"/d ~/.ssh/known_hosts
+    if [ -f ~/.ssh/known_hosts ]; then
+        cr-build-log "Clearing ${GUEST_IP_ADDR} from known hosts ..."
+        sed -i /"${GUEST_IP_ADDR}"/d ~/.ssh/known_hosts
+    fi
 }
 
 #
@@ -131,6 +157,7 @@ function cr-virsh-set-ip(){
 #
 function extract-named-image()
 {
+    cr-build-log "Extracting $1 image ..."
     # Generate manifest and clean /tmp in guest
     ${SSH_CMD} 'rpm -qa | sort' > ${BUILD_DIR}/manifest-${1}.txt
 
@@ -154,9 +181,12 @@ function extract-named-image()
     virsh destroy ${VIRT_HOSTNAME}
     cp ${BUILD_IMAGE_RAW} ${BUILD_IMAGE_RAW/.raw/-${1}.raw}
     cr-virsh-create
+
+    cr-build-log "Image extraction completed for $1."
 }
 
 function cr-virsh-init-iso(){
+    cr-build-log "Generating cloud-init iso ..."
     # Create a cloud-init ISO image to inject build SSH_KEY
     mkdir ${CLOUD_INIT_DIR}
     cat > ${CLOUD_INIT_DIR}/user-data << EOF
@@ -170,11 +200,16 @@ write_files:
 ssh_authorized_keys:
     - $(cat ${SSH_KEY}.pub)
 EOF
+    cr-build-log "Using user-data with contents:"
+    cat ${CLOUD_INIT_DIR}/user-data
 
     cat > ${CLOUD_INIT_DIR}/meta-data << EOF
 instance-id: ${VIRT_HOSTNAME}
 local-hostname: ${VIRT_HOSTNAME}
 EOF
+
+    cr-build-log "Using meta-data with contents:"
+    cat ${CLOUD_INIT_DIR}/meta-data
 
     genisoimage \
         -output ${CLOUD_INIT_ISO} \
@@ -185,10 +220,10 @@ EOF
 }
 
 # Get a fresh checksum copy for verification
+cr-build-log "Fetching a fresh Fedora base image checksum file ..."
 wget -O ${CHECKSUM_FILE} ${FEDORA_CHECKSUM_URL}
 gpg --verify-files ${CHECKSUM_FILE} || \
-    { >&2 echo "ERROR: Invalid checksum file ${CHECKSUM_FILE} downloaded." \
-        && exit 1 ; }
+    cr-build-error "Invalid checksum file ${CHECKSUM_FILE} downloaded."
 
 if [ ! -f ${FEDORA_IMAGE} ]; then
     wget ${FEDORA_IMAGE_URL}
@@ -196,8 +231,7 @@ fi
 
 if ! sha256sum -c ${CHECKSUM_FILE} 2> /dev/null \
     | grep "${FEDORA_IMAGE}: OK" > /dev/null; then
-    >&2 echo "ERROR: Invalid image checksum for ${FEDORA_IMAGE}"
-    exit 1
+    cr-build-error "Invalid image checksum for ${FEDORA_IMAGE}"
 fi
 
 # setup build
@@ -212,6 +246,7 @@ mv ${FEDORA_IMAGE_RAW} ${BUILD_IMAGE_TMP}
 chmod 777 ${BUILD_IMAGE_TMP}
 
 # Resize the image (+1 GB)
+cr-build-log "Resizing base image backing file ..."
 truncate -r ${BUILD_IMAGE_TMP} ${BUILD_IMAGE_RAW}
 truncate -s +1G ${BUILD_IMAGE_RAW}
 virt-resize --expand /dev/sda1 ${BUILD_IMAGE_TMP} ${BUILD_IMAGE_RAW}
@@ -230,13 +265,19 @@ cr-virsh-init-iso
 cr-virsh-create
 
 # install deltarpms
+cr-build-log "Install detalrpm on guest ..."
 $SSH_CMD "sudo yum --assumeyes install deltarpm"
 
+# remove stuff
+${SSH_CMD} "sudo yum --asumeyes remove docker"
+
 # update base
+cr-build-log "Update fedora base ..."
 $SSH_CMD "sudo yum --assumeyes update"
 
-# workaroud tty issue when running script from host
-$SSH_CMD "echo $(base64 -w0 fedora-cloudrouter-setup.sh) | base64 -d | sudo bash"
+cr-build-log "Install Cloud Router repository ..."
+${SSH_CMD} "sudo yum install --assumeyes ${CR_REL_RPM}"
+${SSH_CMD} "sudo rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-CLOUDROUTER"
 
 # extract minimal
 extract-named-image minimal
@@ -250,4 +291,5 @@ cr-virsh-destroy
 cr-build-cleanup
 
 # xz compress
+cr-build-log "Compressing images (this will take a while)..."
 xz --verbose ${BUILD_DIR}/*.raw
