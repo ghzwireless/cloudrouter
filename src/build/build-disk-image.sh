@@ -180,7 +180,9 @@ function extract-named-image()
     # workaround: ugly and adds 5 minutes wait
     cr-virsh-destroy
     cp ${BUILD_IMAGE_RAW} ${BUILD_IMAGE_RAW/.raw/-${1}.raw}
-    cr-virsh-create
+    # look for a second argument indicating if the guest should be recreated
+    # if non-zero or empty guest is rescreated
+    { [[ ! -z $2 ]] && [[ $2 -eq 0 ]] ; } || cr-virsh-create
 
     cr-build-log "Image extraction completed for $1."
 }
@@ -284,7 +286,7 @@ extract-named-image minimal
 
 # install additional packages for full distribution and extract full image
 ${SSH_CMD} "sudo yum -y install $(cat packages-full.list | tr "\\n" " ")"
-extract-named-image full
+extract-named-image full 0
 
 # Shutdown VM and cleanup
 cr-virsh-destroy
