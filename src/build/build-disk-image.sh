@@ -162,7 +162,7 @@ function extract-named-image()
     ${SSH_CMD} 'rpm -qa | sort' > ${BUILD_DIR}/manifest-${1}.txt
 
     # undefine before blockcopying
-    virsh dumpxml ${VIRT_HOSTNAME} > ${VIRT_BUILD_XML}
+    #virsh dumpxml ${VIRT_HOSTNAME} > ${VIRT_BUILD_XML}
     #virsh undefine ${VIRT_HOSTNAME}
 
     # this  is not possible  on centos 7 with current QEMU binary
