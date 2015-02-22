@@ -124,6 +124,9 @@ function cr-virsh-create(){
     virsh create ${VIRT_BUILD_XML}
     cr-build-log "Waiting for guest to boot up ... "
     sleep ${VIRSH_WAIT_CREATE}
+    # list active domains and networks
+    cr-build-log "Listing active domains and networks ..."
+    virsh list; virsh net-list
     cr-virsh-set-ip
 }
 
