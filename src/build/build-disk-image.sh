@@ -96,8 +96,8 @@ function cr-virsh-shutdown(){
 function cr-virsh-destroy(){
     cr-virsh-shutdown
     virsh list | grep ${VIRT_HOSTNAME} > /dev/null \
-        && { cr-build-log "Destroying domain ${VIRT_HOSTNAME}; \
-        "virsh destroy ${VIRT_HOSTNAME}; \
+        && { cr-build-log "Destroying domain ${VIRT_HOSTNAME}"; \
+        virsh destroy ${VIRT_HOSTNAME}; \
         sleep 10; \
         virsh list; }
 }
