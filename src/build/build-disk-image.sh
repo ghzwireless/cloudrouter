@@ -42,6 +42,18 @@ function cr-build-log(){
     echo "$(date) [cr-build] $1"
 }
 
+# spit out configuration
+cr-build-log "FEDORA_ARCH=${FEDORA_ARCH}"
+cr-build-log "FEDORA_VERSION=${FEDORA_VERSION}"
+cr-build-log "FEDORA_RELEASE=${FEDORA_RELEASE}"
+cr-build-log "CR_REL_RPM=${CR_REL_RPM}"
+cr-build-log "VIRSH_WAIT_CREATE=${VIRSH_WAIT_CREATE}"
+cr-build-log "VIRSH_WAIT_DESTROY=${VIRSH_WAIT_DESTROY}"
+cr-build-log "VIRSH_WAIT_SHUTDOWN=${VIRSH_WAIT_SHUTDOWN}"
+[[ ! -z ${DISABLE_BASE_UPDATE} ]] \
+    && cr-build-log "DISABLE_BASE_UPDATE set; base update disabled"
+
+
 function cr-build-error(){
     >&2 cr-build-log "[ERROR] $1"
     cr-build-cleanup
