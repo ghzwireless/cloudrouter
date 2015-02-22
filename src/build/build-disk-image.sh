@@ -34,6 +34,10 @@ VIRT_BUILD_XML_SRC=CloudRouter-build.xml
 VIRT_BUILD_XML=${BUILD_DIR}/cloudrouter-build.xml
 VIRT_NETWORK_XML=${BUILD_DIR}/cloudrouter-build-network.xml
 
+VIRSH_WAIT_CREATE=${VIRSH_WAIT_CREATE-300}
+VIRSH_WAIT_DESTROY=${VIRSH_WAIT_DESTROY-10}
+VIRSH_WAIT_SHUTDOWN=${VIRSH_WAIT_SHUTDOWN-${VIRSH_WAIT_DESTROY}}
+
 function cr-build-log(){
     echo "$(date) [cr-build] $1"
 }
@@ -90,7 +94,7 @@ function cr-virsh-shutdown(){
         | grep ${VIRT_HOSTNAME} > /dev/null \
         && { cr-build-log "Shutting down ${VIRT_HOSTNAME}"; \
         virsh shutdown ${VIRT_HOSTNAME} ; \
-        sleep 10; }
+        sleep ${VIRSH_WAIT_SHUTDOWN}; }
 }
 
 function cr-virsh-destroy(){
@@ -98,7 +102,7 @@ function cr-virsh-destroy(){
     virsh list | grep ${VIRT_HOSTNAME} > /dev/null \
         && { cr-build-log "Destroying domain ${VIRT_HOSTNAME}"; \
         virsh destroy ${VIRT_HOSTNAME}; \
-        sleep 10; \
+        sleep ${VIRSH_WAIT_DESTROY}; \
         virsh list; }
 }
 
@@ -106,7 +110,8 @@ function cr-virsh-create(){
     cr-virsh-destroy
     cr-build-log "Attempting to create domain ${VIRT_HOSTNAME} ... "
     virsh create ${VIRT_BUILD_XML}
-    cr-build-log "Waiting for guest to boot up ... " && sleep 300
+    cr-build-log "Waiting for guest to boot up ... "
+    sleep ${VIRSH_WAIT_CREATE}
     cr-virsh-set-ip
 }
 
@@ -288,8 +293,9 @@ ${SSH_CMD} "sudo yum --assumeyes install deltarpm"
 ${SSH_CMD} "sudo yum --assumeyes remove docker"
 
 # update base
-cr-build-log "Update fedora base ..."
-${SSH_CMD} "sudo yum --assumeyes update"
+[[ ! -z ${DISABLE_BASE_UPDATE} ]] \
+    || { cr-build-log "Update fedora base ..."; \
+    ${SSH_CMD} "sudo yum --assumeyes update"; }
 
 cr-build-log "Install Cloud Router repository ..."
 ${SSH_CMD} "sudo yum install --assumeyes ${CR_REL_RPM}"
