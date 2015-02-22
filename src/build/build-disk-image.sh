@@ -45,9 +45,10 @@ function cr-build-error(){
 }
 
 function cr-virsh-network-destroy(){
-    cr-build-log "Attempting to destroy network ${VIRT_NETWORK} if exists ... "
-    virsh net-undefine ${VIRT_NETWORK}
-    virsh net-destroy ${VIRT_NETWORK}
+    virsh net-list | grep ${VIRT_NETWORK} > /dev/null \
+        && { cr-build-log "Destroying network ${VIRT_NETWORK}"; \
+        virsh net-undefine ${VIRT_NETWORK}; \
+        virsh net-destroy ${VIRT_NETWORK}; }
 }
 
 function cr-virsh-network-create(){
@@ -73,8 +74,7 @@ EOF
     cr-build-log "Network creation completed."
 }
 
-function cr-virsh-destroy(){
-    cr-build-log "Attempting to destroy domain ${VIRT_HOSTNAME} ... "
+function cr-virsh-shutdown(){
     if ping -c1 "${GUEST_IP_ADDR}"  > /dev/null 2>&1; then
         cr-build-log "Guest IP active, cleaning guest ..."
         ${SSH_CMD} 'sudo yum clean all'
@@ -85,7 +85,21 @@ function cr-virsh-destroy(){
         # clear ssh authorzied keys last
         ${SSH_CMD} '[[ -f ~/.ssh/authorized_keys ]] && echo "" > ~/.ssh/authorized_keys'
     fi
-    virsh destroy ${VIRT_HOSTNAME}
+
+    virsh list | grep running | awk '{ print $2}' \
+        | grep ${VIRT_HOSTNAME} > /dev/null \
+        && { cr-build-log "Shutting down ${VIRT_HOSTNAME}"; \
+        virsh shutdown ${VIRT_HOSTNAME} ; \
+        sleep 10; }
+}
+
+function cr-virsh-destroy(){
+    cr-virsh-shutdown
+    virsh list | grep ${VIRT_HOSTNAME} > /dev/null \
+        && { cr-build-log "Destroying domain ${VIRT_HOSTNAME}; \
+        "virsh destroy ${VIRT_HOSTNAME}; \
+        sleep 10; \
+        virsh list; }
 }
 
 function cr-virsh-create(){
