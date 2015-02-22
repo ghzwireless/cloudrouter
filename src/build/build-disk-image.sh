@@ -282,14 +282,14 @@ cr-virsh-create
 
 # install deltarpms
 cr-build-log "Install detalrpm on guest ..."
-$SSH_CMD "sudo yum --assumeyes install deltarpm"
+${SSH_CMD} "sudo yum --assumeyes install deltarpm"
 
 # remove stuff
-${SSH_CMD} "sudo yum --asumeyes remove docker"
+${SSH_CMD} "sudo yum --assumeyes remove docker"
 
 # update base
 cr-build-log "Update fedora base ..."
-$SSH_CMD "sudo yum --assumeyes update"
+${SSH_CMD} "sudo yum --assumeyes update"
 
 cr-build-log "Install Cloud Router repository ..."
 ${SSH_CMD} "sudo yum install --assumeyes ${CR_REL_RPM}"
