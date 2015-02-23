@@ -22,6 +22,7 @@ FEDORA_CHECKSUM_URL=${FEDORA_URL_PREFIX}/${FEDORA_CHECKSUM}
 CHECKSUM_FILE=${BUILD_DIR}/${FEDORA_CHECKSUM}
 FEDORA_USER=fedora
 
+BUILD_PROFILE=${BUILD_PROFILE-both}
 BUILD_IMAGE_RAW=${BUILD_DIR}/cloudrouter-build.raw
 BUILD_IMAGE_TMP=${BUILD_IMAGE_RAW/.raw/-tmp.raw}
 SSH_KEY=${BUILD_DIR}/build_rsa
@@ -47,6 +48,7 @@ cr-build-log "FEDORA_ARCH=${FEDORA_ARCH}"
 cr-build-log "FEDORA_VERSION=${FEDORA_VERSION}"
 cr-build-log "FEDORA_RELEASE=${FEDORA_RELEASE}"
 cr-build-log "CR_REL_RPM=${CR_REL_RPM}"
+cr-build-log "BUILD_PROFILE=${BUILD_PROFILE}"
 cr-build-log "VIRSH_WAIT_CREATE=${VIRSH_WAIT_CREATE}"
 cr-build-log "VIRSH_WAIT_DESTROY=${VIRSH_WAIT_DESTROY}"
 cr-build-log "VIRSH_WAIT_SHUTDOWN=${VIRSH_WAIT_SHUTDOWN}"
@@ -315,12 +317,23 @@ cr-build-log "Install Cloud Router repository ..."
 ${SSH_CMD} "sudo yum install --assumeyes ${CR_REL_RPM}"
 ${SSH_CMD} "sudo rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-CLOUDROUTER"
 
-# extract minimal
-extract-named-image minimal
-
-# install additional packages for full distribution and extract full image
-${SSH_CMD} "sudo yum -y install $(cat packages-full.list | tr "\\n" " ")"
-extract-named-image full 0
+# extract profile images
+case "$BUILD_PROFILE" in
+    'minimal')
+        cr-build-log "Building only minimal ..."
+        extract-named-image minimal 0
+        ;;
+    'full')
+        cr-build-log "Building only full ..."
+        ${SSH_CMD} "sudo yum -y install $(cat packages-full.list | tr "\\n" " ")"
+        extract-named-image full 0
+        ;;
+    'both')
+        cr-build-log "Building only minimal and full ..."
+        extract-named-image minimal
+        ${SSH_CMD} "sudo yum -y install $(cat packages-full.list | tr "\\n" " ")"
+        extract-named-image full 0
+esac
 
 # Shutdown VM and cleanup
 cr-virsh-destroy
