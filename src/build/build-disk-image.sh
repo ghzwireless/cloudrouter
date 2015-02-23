@@ -115,11 +115,13 @@ function cr-virsh-destroy(){
         && { cr-build-log "Destroying domain ${VIRT_HOSTNAME}"; \
         virsh destroy ${VIRT_HOSTNAME}; \
         sleep ${VIRSH_WAIT_DESTROY}; \
+        cr-virsh-network-destroy; \
         virsh list; }
 }
 
 function cr-virsh-create(){
     cr-virsh-destroy
+    cr-virsh-network-create
     cr-build-log "Attempting to create domain ${VIRT_HOSTNAME} ... "
     virsh create ${VIRT_BUILD_XML}
     cr-build-log "Waiting for guest to boot up ... "
@@ -143,14 +145,11 @@ function cr-build-setup()
     sed -i s="VIRT_HOSTNAME"="${VIRT_HOSTNAME}"=g ${VIRT_BUILD_XML}
     sed -i s="VIRT_NETWORK"="${VIRT_NETWORK}"=g ${VIRT_BUILD_XML}
     sed -i s="VIRT_ARCH"="${VIRT_ARCH}"=g ${VIRT_BUILD_XML}
-
-    cr-virsh-network-create
 }
 
 function cr-build-cleanup()
 {
     cr-build-log "Cleaning up build ..."
-    cr-virsh-network-destroy
     cr-virsh-destroy
     # remove any temporary files created
     rm -rf *.xml \
