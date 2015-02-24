@@ -316,6 +316,7 @@ ${SSH_CMD} "sudo yum --assumeyes remove docker"
 cr-build-log "Install Cloud Router repository ..."
 ${SSH_CMD} "sudo yum install --assumeyes ${CR_REL_RPM}"
 ${SSH_CMD} "sudo rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-CLOUDROUTER"
+${SSH_CMD} "sed -i 's/Fedora/CloudRouter 1.0 Beta based on Fedora/' /etc/issue"
 
 # extract profile images
 case "$BUILD_PROFILE" in
