@@ -1,22 +1,21 @@
-# Cloud Router Docker Container
-Proof of concept docker container for Cloud Router and runs ODL.
+# CloudRouter (w/ OpenDaylight) Docker Container
+CloudRouter container with [OpenDaylight](http://www.opendaylight.org/).
 
 ## Building
 ```sh
-# This command is what use used by the helper script cr-odl-build.sh
-docker build --tag=cloudrouter/odl .
+docker build --tag=cloudrouter/odl-fedora .
 ```
 
 ## Running
-The helper script `cr-odl-run.sh` runs the container in the foreground with all known ports mapped `1:1`.
+Note that the following assumes that you to already have `cloudrouter/base-fedora` built or available.
 
+To run with default configuration:
 ```sh
-# Run the container in detached mode with random ports
-docker run -d -P cloudrouter/odl
+docker run -d cloudrouter/odl-fedora
+```
 
+## Stopping
+```sh
 # Stop container
 docker stop ${CONTAINER_ID}
-
-# Open an interactive shell in the container
-docker run -i cloudrouter/odl '/usr/bin/bash'
 ```

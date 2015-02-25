@@ -24,4 +24,4 @@ docker run \
     -p 8181:8181 \
     -p 8383:8383 \
     -p 12001:12001 \
-    cloudrouter/odl
+    cloudrouter/odl-fedora
