@@ -1,4 +1,6 @@
 #!/bin/sh
+# Prepare sources
+
 mkdir opendaylight-service
 cd opendaylight-service
 cp ../SOURCES/opendaylight.service .
@@ -11,6 +13,10 @@ cp SPECS/* ~/rpmbuild/SPECS/
 cp SOURCES/* ~/rpmbuild/SOURCES/
 rm -rf ~/rpmbuild/BUILD/
 curl -o ~/rpmbuild/SOURCES/RPM-GPG-KEY-CLOUDROUTER https://cloudrouter.org/repo/RPM-GPG-KEY-CLOUDROUTER
+
+# Build packages
+
+rpmbuild -ba --clean ~/rpmbuild/SPECS/bird.spec
 rpmbuild -ba --clean ~/rpmbuild/SPECS/cloudrouter-1.0.spec
 if [ ! -f ~/rpmbuild/SOURCES/distribution-karaf-0.2.2-Helium-SR2.tar.gz ]
 then
