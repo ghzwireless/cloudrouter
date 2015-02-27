@@ -33,12 +33,12 @@ ${VIRT_BUILDER_CMD} --list | grep ${BUILDER} > /dev/null \
 PACKAGES=deltarpm
 PACKAGE_LIST="${SCRIPT_HOME}/package-lists/${PROFILE}"
 if [ -f "${PACKAGE_LIST}" ]; then
-    PACKAGES="${PACKAGES} $(cat ${PACKAGE_LIST} | xargs -I {} echo -n " {}")"
+    PACKAGES="${PACKAGES} $(cat ${PACKAGE_LIST} | xargs -I {} echo -n ",{}")"
 fi
 
 # install any extra packages defined at runtime
-if [ !-z ${EXTRA_PACKAGES} ]; then
-    PACKAGES="${PACKAGES} ${EXTRA_PACKAGES}"
+if [ !-z "${EXTRA_PACKAGES}" ]; then
+    PACKAGES="${PACKAGES},${EXTRA_PACKAGES}"
 fi
 
 # see if there is any os specific action
@@ -80,7 +80,7 @@ ${VIRT_BUILDER_CMD} ${BUILDER} \
     --run-command "yum -y install ${RELEASE_RPM}" \
     --run-command "rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-CLOUDROUTER" \
     ${BUILD_EXTRA_ARGS} \
-    --install ${PACKAGES} \
+    --install "${PACKAGES}" \
     --update \
     --format raw \
     --output ${OUTPUT} \
