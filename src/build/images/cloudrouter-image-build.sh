@@ -94,4 +94,4 @@ ${VIRT_BUILDER_CMD} ${BUILDER} \
 # cat ${BUILD_LOG} | grep -v "${RELEASE_RPM}" | grep "\.rpm$" \
 #     > ${OUTPUT/.raw/.manifest}
 
-xz --verbose ${BUILD_DIR}/*.raw
+xz --verbose --force ${BUILD_DIR}/*.raw
