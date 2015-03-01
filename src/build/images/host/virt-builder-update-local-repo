@@ -1,0 +1,240 @@
+#!/usr/bin/env python
+
+from argparse import ArgumentParser
+from ConfigParser import ConfigParser
+from hashlib import sha512
+from logging import getLogger, INFO, DEBUG, Formatter, basicConfig
+from os import stat
+from os.path import join, basename
+from subprocess import check_output, check_call
+from shutil import move
+from sys import exit
+from urllib import urlopen
+
+
+VIRT_BUILDER_CMD = 'virt-builder'
+VIRT_SPARSIFY_CMD = 'virt-sparsify'
+INDEX_URL = 'http://libguestfs.org/download/builder/index'
+INDEX_FILE = 'index'
+LOCAL_REPO_FILE = '/etc/virt-builder/repos.d/local.conf'
+BLOCKSIZE = 65536
+
+
+LOG_FORMAT = '[%(asctime)s][%(name)s][%(levelname)s] %(message)s'
+basicConfig(format=LOG_FORMAT)
+logger = getLogger('repo-update')
+logger.setLevel(INFO)
+
+
+def sha512sum(filename):
+    hasher = sha512()
+    with open(filename, 'rb') as inputfile:
+        while True:
+            buf = inputfile.read(BLOCKSIZE)
+            if len(buf) <= 0:
+                break
+            hasher.update(buf)
+    return hasher.hexdigest()
+
+
+def filesize(filename):
+    return stat(filename).st_size
+
+
+def xz(filename):
+    logger.info('Compressing %s (this may take a while) ...', filename)
+    check_call(['xz', '--force', filename])
+    return '{filename:s}.xz'.format(filename=filename)
+
+
+def get_baseconfig(builder):
+    try:
+        config = ConfigParser()
+        config.readfp(urlopen(INDEX_URL))
+        if config.has_section(builder):
+            return {k: v for (k, v) in config.items(builder)}
+    except:
+        # do nothing
+        pass
+    return {}
+
+
+def get_oldconfig(builder, repo='local'):
+    try:
+        config = ConfigParser()
+        config.read(join(get_repobase(repo), 'index'))
+        if config.has_section(builder):
+            return {k: v for (k, v) in config.items(builder)}
+    except:
+        # do nothing
+        pass
+    return {}
+
+
+def base_builder_exits(builder):
+    logger.debug('Checking if base exists for %s ...', builder)
+    return builder in check_output([VIRT_BUILDER_CMD, '--list'])
+
+
+def update_build(
+        os, version, arch='x86_64', fmt='raw', suffix='latest',
+        repo='local', clean=False):
+    logger.info(
+        'Updating image for %s-%s-%s-%s in %s repository ...',
+        os, version, suffix, arch, repo
+    )
+    builder = '{os:s}-{version:s}'.format(os=os, version=version)
+    name = '{builder:s}-{suffix:s}'.format(builder=builder, suffix=suffix)
+    output = '{name:s}.{fmt:s}'.format(name=name, fmt=fmt)
+
+    # list out available builds
+    list_output = check_output([VIRT_BUILDER_CMD, '--list'])
+
+    if builder not in list_output:
+        logger.info('Base image was not found ...')
+        exit(1)
+
+    if name in list_output and not clean:
+        builder = name
+        baseconfig = get_oldconfig(name)
+    else:
+        baseconfig = get_baseconfig(builder)
+
+    # build updated imaged
+    check_call([
+        VIRT_BUILDER_CMD,
+        builder, '--arch', arch,
+        '--root-password', 'locked:disabled',
+        '--selinux-relabel',
+        '--format', fmt,
+        '--update',
+        '--output', output,
+    ] + ['--no-cache'] if builder == name else [])
+
+    # sparsify image
+    check_call([
+        VIRT_SPARSIFY_CMD,
+        '--in-place',
+        output,
+    ])
+
+    # prepare new config
+    config = {
+        'name': name,
+        'arch': arch,
+        'format': fmt,
+        'size': filesize(output),
+        'expand': baseconfig.get('expand', '/dev/sda3'),
+    }
+
+    # compress image and update config
+    xzfile = xz(output)
+    config['file'] = xzfile
+    config['checksum'] = sha512sum(xzfile)
+    config['compressed_size'] = filesize(xzfile)
+
+    logger.debug('Inserting config: %s', str(config))
+
+    return config
+
+
+def get_repobase(repo='local', repofile=LOCAL_REPO_FILE):
+    config = ConfigParser()
+    config.read(repofile)
+
+    if config.has_section(repo):
+        uri = config.get(repo, 'uri')
+        if not uri.startswith('file://'):
+            raise IOError(
+                'Non local repository uri found: {uri:s}'.format(uri=uri))
+        return uri.replace('file://', '').rstrip('/index')
+    return ''
+
+
+def update_repo(repo, config):
+    indexfile = join(get_repobase(repo), 'index')
+    logger.info('Rebuilding %s ...', indexfile)
+    builder = config.get('name')
+    index = ConfigParser()
+    index.read(indexfile)
+
+    if index.has_section(builder):
+        index.remove_section(builder)
+
+    index.add_section(builder)
+
+    for (k, v) in config.items():
+        index.set(builder, k, v)
+
+    with open(indexfile, 'w') as fp:
+        index.write(fp)
+
+    # we need to remove whitespapce around the =
+    check_call(['sed', '-i', 's/ = /=/', indexfile])
+
+
+def argparser():
+    parser = ArgumentParser()
+    parser.add_argument(
+        "-o", "--os", dest="os", required=True,
+        help="base os", metavar="OS"
+    )
+    parser.add_argument(
+        "-v", "--version", dest="version", required=True,
+        help="base version", metavar="VERSION"
+    )
+    parser.add_argument(
+        '-s', '--suffix', dest='suffix',
+        help='suffix to use, default is latest', metavar='SUFFIX',
+        default='latest'
+    )
+    parser.add_argument(
+        '-a', '--arch', dest='arch',
+        help='arch to use, default is x86_64', metavar='ARCH',
+        default='x86_64'
+    )
+    parser.add_argument(
+        '-f', '--format', dest='fmt',
+        help='format of output disk image', metavar='FORMAT',
+        default='raw'
+    )
+    parser.add_argument(
+        '-r', '--repo', dest='repo',
+        help='choose local repository (defined in '
+        '/etc/virt-builder/repos.d/local.conf) to push to, default is local',
+        metavar='LOCAL', default='local'
+    )
+    parser.add_argument(
+        '-d', '--debug', dest='debug', action='store_true',
+        help='enable debug mode logging', default=False,
+    )
+    parser.add_argument(
+        '-c', '--clean', dest='clean', action='store_true',
+        help='force a clean build', default=False,
+    )
+    return parser
+
+
+def main():
+    parser = argparser()
+    args = parser.parse_args()
+
+    if args.debug:
+        logger.setLevel(DEBUG)
+
+    cfg = update_build(
+        args.os, args.version, args.arch, args.fmt, args.suffix, args.repo,
+        args.clean,
+    )
+
+    # inject new update into repo
+    update_repo(args.repo, cfg)
+    xzfile = cfg.get('file')
+    src = xzfile
+    dst = join(get_repobase(args.repo), basename(xzfile))
+    logger.info('Adding file at %s ...', dst)
+    move(src, dst)
+
+
+if __name__ == '__main__':
+    main()
