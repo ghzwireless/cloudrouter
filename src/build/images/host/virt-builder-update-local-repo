@@ -15,7 +15,6 @@ from urllib import urlopen
 VIRT_BUILDER_CMD = 'virt-builder'
 VIRT_SPARSIFY_CMD = 'virt-sparsify'
 INDEX_URL = 'http://libguestfs.org/download/builder/index'
-INDEX_FILE = 'index'
 LOCAL_REPO_FILE = '/etc/virt-builder/repos.d/local.conf'
 BLOCKSIZE = 65536
 
@@ -109,7 +108,7 @@ def update_build(
         '--format', fmt,
         '--update',
         '--output', output,
-    ] + ['--no-cache'] if builder == name else [])
+    ] + (['--no-cache'] if builder == name else []))
 
     # sparsify image
     check_call([
