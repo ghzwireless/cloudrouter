@@ -33,11 +33,11 @@ ${VIRT_BUILDER_CMD} --list | grep ${BUILDER} > /dev/null \
 PACKAGES=deltarpm
 PACKAGE_LIST="${SCRIPT_HOME}/package-lists/${PROFILE}"
 if [ -f "${PACKAGE_LIST}" ]; then
-    PACKAGES="${PACKAGES} $(cat ${PACKAGE_LIST} | xargs -I {} echo -n ",{}")"
+    PACKAGES="${PACKAGES}$(cat ${PACKAGE_LIST} | xargs -I {} echo -n ",{}")"
 fi
 
 # install any extra packages defined at runtime
-if [ !-z "${EXTRA_PACKAGES}" ]; then
+if [ ! -z "${EXTRA_PACKAGES}" ]; then
     PACKAGES="${PACKAGES},${EXTRA_PACKAGES}"
 fi
 
