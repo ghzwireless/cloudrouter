@@ -64,10 +64,23 @@ runuser \
     -c 'virt-builder-update-local-rep --os centos --version 7.0 --repo jenkins --suffix latest'
 ```
 
+**Warning:** Considering that this strategy means that the images get replaced, do take care to clear the caches for any user using this repository. Otherwise you will see chesum mis-match errors thrown. There are multiple ways you can do this.
+
+```sh
+# delete all cached teamplates
+virt-builder --delete-cache
+
+# delete only cached templates with 'latest' suffix
+rm -f $(virt-builder --print-cache | grep "cache directory" | cut -d ' ' -f 3)/*-latest*
+
+# do not use the cache when building against local repository images
+virt-builder --no-cache centos-7.0-latest -o /tmp/test.img
+```
+
 This will add a new builder, if it does not already exist, or update the existing builder named `centos-7.0-latest` in the `jenkins` users local repository as configured during installation in `/etc/virt-builder/repos.d/local.conf`.
 
 ## Troubleshooting
-### 'virt-builder' disables cache due to `Unix.ENOENT` error
+### `virt-builder` disables cache due to `Unix.ENOENT` error
 When using the the packages provided from the [libguestfs RHEL 7.1 preview repository](http://www.redhat.com/archives/virt-tools-list/2014-May/msg00053.html), you might encounter issues with cache directory creation.
 ```
 virt-builder: warning: cache /home/abn/.cache/virt-builder:
