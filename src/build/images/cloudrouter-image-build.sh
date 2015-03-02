@@ -80,9 +80,9 @@ echo ""
 ${VIRT_BUILDER_CMD} ${BUILDER} \
     --arch ${ARCH} \
     --root-password locked:disabled \
+    ${BUILD_EXTRA_ARGS} \
     --run-command "yum -y install ${RELEASE_RPM}" \
     --run-command "rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-CLOUDROUTER" \
-    ${BUILD_EXTRA_ARGS} \
     --install "${PACKAGES}" \
     --update \
     --format raw \
