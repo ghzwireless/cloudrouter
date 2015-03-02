@@ -9,7 +9,7 @@ BUILD_DIR=${BUILD_DIR-$(pwd)}
 RELEASE_RPM=${RELEASE_RPM-https://cloudrouter.org/repo/beta/x86_64/cloudrouter-release-1-1.noarch.rpm}
 
 VIRT_BUILDER_CMD=${VIRT_BUILDER_CMD-virt-builder}
-BUILD_EXTRA_ARGS="${BUILD_EXTRA_ARG}"
+BUILD_EXTRA_ARGS="${BUILD_EXTRA_ARGS}"
 BUILD_EXTRA_ARGS_END="${BUILD_EXTRA_ARGS_END}"
 
 # dynamic var
