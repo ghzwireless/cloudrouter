@@ -52,16 +52,33 @@ uri=file://${INDEX_FILE}
 proxy=off
 EOF
 ```
-
-#### Update latest images (GCE speed-up)
-In order to update an image in the local repository, a helper script that updates the existing image or builds a new up-to-date image is provided as `host/virt-builder-update-local-repo`. This script generates the required meta-data for index file in the specified repository.
+#### Add a new image
+In addition to the builder base images that are provided upstream, we might require others - eg: RHEL 7.0 Guest Image. This can be done with the help of the `host/virt-builder-repoman` script.
 
 ```sh
 # Get jenkins user to update its local repository copy of centos-7.0
 runuser \
     -l jenkins \
     -s /usr/bin/bash \
-    -c 'virt-builder-update-local-rep --os centos --version 7.0 --repo jenkins --suffix latest'
+    -c 'virt-builder-repoman --os centos --version 7.0 --repo jenkins add --fmt qcow2 add /path/to/rhel-guest-image-7.0-20140930.0.x86_64.qcow2'
+```
+
+#### Update latest images (GCE speed-up)
+In order to update an image in the local repository, a helper script that updates the existing image or builds a new up-to-date image is provided as `host/virt-builder-repoman`. This script generates the required meta-data for index file in the specified repository.
+
+```sh
+# Get jenkins user to update its local repository copy of centos-7.0
+runuser \
+    -l jenkins \
+    -s /usr/bin/bash \
+    -c 'virt-builder-repoman --os centos --version 7.0 --repo jenkins --suffix latest update'
+```
+
+In order to update RHEL images, we require a subscription. The steps required for this is replicated in the `host/update-rhel-base.sh` script. You can use this as follows:
+```sh
+# you can leave out USERNAME and PASSWORD if the script is run interactively
+REPO_MANAGER_SCRIPT="/path/to/virt-builder-repoman" USERNAME="rh-csp-username" \
+    PASSWORD="rh-csp-password" OS=rhel VERSION=7.0 ./host/update-rhel-base.sh
 ```
 
 **Warning:** Considering that this strategy means that the images get replaced, do take care to clear the caches for any user using this repository. Otherwise you will see chesum mis-match errors thrown. There are multiple ways you can do this.
