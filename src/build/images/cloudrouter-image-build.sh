@@ -9,7 +9,8 @@ BUILD_DIR=${BUILD_DIR-$(pwd)}
 RELEASE_RPM=${RELEASE_RPM-https://cloudrouter.org/repo/beta/x86_64/cloudrouter-release-1-1.noarch.rpm}
 
 VIRT_BUILDER_CMD=${VIRT_BUILDER_CMD-virt-builder}
-BUILD_EXTRA_ARG=""
+BUILD_EXTRA_ARGS="${BUILD_EXTRA_ARG}"
+BUILD_EXTRA_ARGS_END="${BUILD_EXTRA_ARGS_END}"
 
 # dynamic var
 BUILDER=${OS}-${VERSION}
@@ -65,10 +66,10 @@ echo ""
 echo "Additional packages being installed:"
 echo "${PACKAGES}"
 
-if [ ! -z "${BUILD_EXTRA_ARGS}" ]; then
+if [ ! -z "${BUILD_EXTRA_ARGS}" ] || [ ! -z "${BUILD_EXTRA_ARGS_END}" ]; then
     echo ""
     echo "Extra arguments passed to ${VIRT_BUILDER_CMD}:"
-    echo "${BUILD_EXTRA_ARGS}"
+    echo "${BUILD_EXTRA_ARGS} ${BUILD_EXTRA_ARGS_END}"
 fi
 
 echo ""
@@ -88,7 +89,8 @@ ${VIRT_BUILDER_CMD} ${BUILDER} \
     --output ${OUTPUT} \
     --selinux-relabel \
     --run-command "rpm -qa" \
-    --run-command "yum -y clean all" | tee ${BUILD_LOG}
+    --run-command "yum -y clean all" \
+    ${BUILD_EXTRA_ARGS_END} | tee ${BUILD_LOG}
 
 # TODO: figure out how to extract manifest
 # cat ${BUILD_LOG} | grep -v "${RELEASE_RPM}" | grep "\.rpm$" \
