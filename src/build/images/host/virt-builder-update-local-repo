@@ -40,9 +40,9 @@ def filesize(filename):
     return stat(filename).st_size
 
 
-def xz(filename):
+def xz(filename, keep=False):
     logger.info('Compressing %s (this may take a while) ...', filename)
-    check_call(['xz', '--force', filename])
+    check_call(['xz'] + (['--keep'] if keep else []) + ['--force', filename])
     return '{filename:s}.xz'.format(filename=filename)
 
 
@@ -75,16 +75,47 @@ def base_builder_exits(builder):
     return builder in check_output([VIRT_BUILDER_CMD, '--list'])
 
 
+def add_build(img, expand, os, version, arch, fmt, suffix, repo):
+    builder = '{os:s}-{version:s}'.format(os=os, version=version)
+    name = '{builder:s}{suffix:s}'.format(
+        builder=builder, suffix='-{0:s}'.format(suffix) if suffix else '')
+    output = '{name:s}.{fmt:s}'.format(name=name, fmt=fmt)
+
+    logger.info(
+        'Adding image for %s-%s in %s repository ...', name, arch, repo
+    )
+
+    # compress source image
+    xzfile = xz(img, True)
+
+    # prepare new config
+    config = {
+        'name': name,
+        'arch': arch,
+        'format': fmt,
+        'size': filesize(img),
+        'expand': expand,
+        'file': basename(xzfile),
+        'checksum': sha512sum(xzfile),
+        'compressed_size': filesize(xzfile)
+    }
+
+    logger.debug('Inserting config: %s', str(config))
+
+    return config
+
+
 def update_build(
         os, version, arch='x86_64', fmt='raw', suffix='latest',
         repo='local', clean=False):
-    logger.info(
-        'Updating image for %s-%s-%s-%s in %s repository ...',
-        os, version, suffix, arch, repo
-    )
     builder = '{os:s}-{version:s}'.format(os=os, version=version)
-    name = '{builder:s}-{suffix:s}'.format(builder=builder, suffix=suffix)
+    name = '{builder:s}{suffix:s}'.format(
+        builder=builder, suffix='-{0:s}'.format(suffix) if suffix else '')
     output = '{name:s}.{fmt:s}'.format(name=name, fmt=fmt)
+
+    logger.info(
+        'Updating image for %s-%s in %s repository ...', name, arch, repo
+    )
 
     # list out available builds
     list_output = check_output([VIRT_BUILDER_CMD, '--list'])
@@ -174,6 +205,8 @@ def update_repo(repo, config):
 
 def argparser():
     parser = ArgumentParser()
+
+    # global
     parser.add_argument(
         "-o", "--os", dest="os", required=True,
         help="base os", metavar="OS"
@@ -183,19 +216,9 @@ def argparser():
         help="base version", metavar="VERSION"
     )
     parser.add_argument(
-        '-s', '--suffix', dest='suffix',
-        help='suffix to use, default is latest', metavar='SUFFIX',
-        default='latest'
-    )
-    parser.add_argument(
         '-a', '--arch', dest='arch',
         help='arch to use, default is x86_64', metavar='ARCH',
         default='x86_64'
-    )
-    parser.add_argument(
-        '-f', '--format', dest='fmt',
-        help='format of output disk image', metavar='FORMAT',
-        default='raw'
     )
     parser.add_argument(
         '-r', '--repo', dest='repo',
@@ -204,13 +227,42 @@ def argparser():
         metavar='LOCAL', default='local'
     )
     parser.add_argument(
+        '-f', '--fmt', dest='fmt', choices=['raw', 'qcow2'],
+        help='format of output disk image', metavar='FORMAT',
+        default='raw'
+    )
+    parser.add_argument(
+        '-s', '--suffix', dest='suffix',
+        help='suffix to use, none is used by default', metavar='SUFFIX',
+        default=None
+    )
+    parser.add_argument(
         '-d', '--debug', dest='debug', action='store_true',
         help='enable debug mode logging', default=False,
     )
-    parser.add_argument(
+
+    subparsers = parser.add_subparsers()
+
+    # add command
+    add = subparsers.add_parser('add', help='Add an image file to local repository.')
+    add.add_argument(
+        'source', type=str, help='source image file'
+    )
+    add.add_argument(
+        '-e', '--expand', dest='expand', metavar='DEV',
+        help='device to expand (default:/dev/sda3)',
+        default='/dev/sda3'
+    )
+    add.set_defaults(cmd='add')
+
+    # update command
+    update = subparsers.add_parser('update', help='Update a local image.')
+    update.add_argument(
         '-c', '--clean', dest='clean', action='store_true',
         help='force a clean build', default=False,
     )
+    update.set_defaults(cmd='update')
+
     return parser
 
 
@@ -221,18 +273,30 @@ def main():
     if args.debug:
         logger.setLevel(DEBUG)
 
-    cfg = update_build(
-        args.os, args.version, args.arch, args.fmt, args.suffix, args.repo,
-        args.clean,
-    )
+    cfg = None
+
+    if args.cmd == 'add':
+        cfg = add_build(
+            args.source, args.expand, args.os, args.version, args.arch,
+            args.fmt, args.suffix, args.repo
+        )
+
+    if args.cmd == 'update':
+        cfg = update_build(
+            args.os, args.version, args.arch, args.fmt, args.suffix, args.repo,
+            args.clean,
+        )
 
     # inject new update into repo
-    update_repo(args.repo, cfg)
-    xzfile = cfg.get('file')
-    src = xzfile
-    dst = join(get_repobase(args.repo), basename(xzfile))
-    logger.info('Adding file at %s ...', dst)
-    move(src, dst)
+    if cfg is not None:
+        update_repo(args.repo, cfg)
+        xzfile = cfg.get('file')
+        src = xzfile
+        dst = join(get_repobase(args.repo), basename(xzfile))
+        logger.info('Adding file at %s ...', dst)
+        move(src, dst)
+    else:
+        logger.warning('No configuration was received to inject into repo.')
 
 
 if __name__ == '__main__':
