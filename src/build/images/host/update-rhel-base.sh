@@ -6,15 +6,15 @@ function fail(){
     exit 1
 }
 
-if [ -z ${USERNAME} ]; then
+if [ -z ${RH_CSP_USERNAME} ]; then
     echo -n "Red Hat Portal Username: "
-    read USERNAME
+    read RH_CSP_USERNAME
 fi
 
 # TODO: probably do a better job of this
-if [ -z ${PASSWORD} ]; then
+if [ -z ${RH_CSP_PASSWORD} ]; then
     echo -n "Red Hat Portal Password: "
-    read -s PASSWORD
+    read -s RH_CSP_PASSWORD
 fi
 
 OS=$(echo ${OS-rhel} | tr '[:upper:]' '[:lower:]')
@@ -40,7 +40,7 @@ BUILD_LOG=${OUTPUT/.${FORMAT}/.log}
 ${VIRT_BUILDER_CMD} ${BASE} \
     --arch ${ARCH} \
     --root-password locked:disabled \
-    --run-command "subscription-manager register --username \"${USERNAME}\" --password \"${PASSWORD}\" --auto-attach" \
+    --run-command "subscription-manager register --username \"${RH_CSP_USERNAME}\" --password \"${RH_CSP_PASSWORD}\" --auto-attach" \
     --update \
     --run-command "yum -y clean all" \
     --run-command "subscription-manager remove --all" \
