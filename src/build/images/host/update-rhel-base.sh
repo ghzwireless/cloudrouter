@@ -24,10 +24,15 @@ VIRT_BUILDER_CMD=${VIRT_BUILDER_CMD-virt-builder}
 REPO_MANAGER_SCRIPT=${REPO_MANAGER_CMD-$(dirname "${BASH_SOURCE[0]}")/virt-builder-repoman}
 FORMAT=${FORMAT-qcow2}
 REPO=${REPO-jenkins}
-SUFFIX=${SUFFIX-"latest"}
+SUFFIX=${SUFFIX-""}
 
 BUILDER=${OS}-${VERSION}
-OUTPUT="${BUILDER}.${FORMAT}"
+
+if [ -z "$SUFFIX" ]; then
+    OUTPUT="${BUILDER}.${FORMAT}"
+else
+    OUTPUT="${BUILDER}-${SUFFIX}.${FORMAT}"
+fi
 BUILD_LOG=${OUTPUT/.${FORMAT}/.log}
 
 # check if the builder base is available
