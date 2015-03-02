@@ -40,16 +40,15 @@ BUILD_LOG=${OUTPUT/.${FORMAT}/.log}
 ${VIRT_BUILDER_CMD} ${BASE} \
     --arch ${ARCH} \
     --root-password locked:disabled \
-    --run-command "subscription-manager register --username \"${USERNAME}\" --password \"${PASSWORD}\"--auto-attach" \
+    --run-command "subscription-manager register --username \"${USERNAME}\" --password \"${PASSWORD}\" --auto-attach" \
     --update \
+    --run-command "yum -y clean all" \
     --run-command "subscription-manager remove --all" \
     --run-command "subscription-manager unregister" \
     --run-command "subscription-manager clean" \
     --format ${FORMAT} \
     --output ${OUTPUT} \
-    --selinux-relabel \
-    --run-command "rpm -qa" \
-    --run-command "yum -y clean all"
+    --selinux-relabel
 
 ${REPO_MANAGER_SCRIPT} -o ${OS} -v ${VERSION} -r ${REPO} -f ${FORMAT} \
     -s ${SUFFIX} add ${OUTPUT}
