@@ -9,4 +9,4 @@ RPM_NAME=$(curl --silent ${EPEL_URL_PREFIX} \
     | egrep -oh "epel-release-7-[0-9]*.noarch.rpm" \
     | sort -u | head -n 1)
 
-yum -y ${EPEL_URL_PREFIX}${RPM_NAME}
+yum -y install ${EPEL_URL_PREFIX}${RPM_NAME}
