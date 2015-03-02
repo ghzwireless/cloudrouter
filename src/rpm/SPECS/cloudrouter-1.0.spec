@@ -36,18 +36,14 @@ install -pm 644 %{SOURCE1} \
 %clean
 rm -rf $RPM_BUILD_ROOT
 
-%post
-sed -i 's/Fedora/CloudRouter 1.0 Beta based on Fedora/' /etc/issue
-
-%postun
-sed -i 's/CloudRouter 1.0 Beta based on Fedora/Fedora/' /etc/issue
-
 %files
 %defattr(-,root,root,-)
 %config(noreplace) /etc/yum.repos.d/*
 /etc/pki/rpm-gpg/*
 
 %changelog
+* Mon Mar 02 2015 David Jorm - 1-2
+- Remove update of issue file, this is now handled by the CloudRouter image build script
 * Tue Jan 20 2015 David Jorm - 1-1
 - Update issue file
 * Fri Jan 16 2015 David Jorm - 1-0
