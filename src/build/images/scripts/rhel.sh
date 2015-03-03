@@ -10,3 +10,10 @@ RPM_NAME=$(curl --silent ${EPEL_URL_PREFIX} \
     | sort -u | head -n 1)
 
 yum -y install ${EPEL_URL_PREFIX}${RPM_NAME}
+
+for ISSUE in "/etc/issue" "/etc/issue.net"; do
+    [[ -f ${ISSUE} ]] && sed -i \
+        's/Red Hat Enterprise Linux.*/CloudRouter 1.0 Beta based on Red Hat Enterprise Linux/' \
+        ${ISSUE}
+done
+

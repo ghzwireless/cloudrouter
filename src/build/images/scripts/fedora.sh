@@ -1,3 +1,8 @@
 #!/usr/bin/env bash
 
-sed -i 's/Fedora/CloudRouter 1.0 Beta based on Fedora/' /etc/issue
+for ISSUE in "/etc/issue" "/etc/issue.net"; do
+    [[ -f ${ISSUE} ]] && sed -i \
+        's/Fedora.*/CloudRouter 1.0 Beta based on Fedora/' \
+        ${ISSUE}
+done
+
