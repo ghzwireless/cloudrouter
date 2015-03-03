@@ -1,1 +1,17 @@
+bind
 bird
+dhcp
+dnsmasq
+dnsmasq-utils
+firewalld
+ipsec-tools
+iputils
+mtr
+net-snmp-utils
+openssh-server
+openvpn
+radvd
+strongswan
+tcpdump
+traceroute
+xl2tpd
