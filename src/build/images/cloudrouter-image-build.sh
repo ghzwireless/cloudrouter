@@ -43,10 +43,14 @@ if [ ! -z "${EXTRA_PACKAGES}" ]; then
 fi
 
 # see if there is any os specific action
+COMMON_SCRIPT="${SCRIPT_HOME}/scripts/common.sh"
 OS_SCRIPT="${SCRIPT_HOME}/scripts/${OS}.sh"
-if [ -f "${OS_SCRIPT}" ]; then
-    BUILD_EXTRA_ARGS="${BUILD_EXTRA_ARGS} --run ${OS_SCRIPT}"
-fi
+
+for SCRIPT in ${COMMON_SCRIPT} ${OS_SCRIPT}; do
+    if [ -f "${SCRIPT}" ]; then
+        BUILD_EXTRA_ARGS="${BUILD_EXTRA_ARGS} --run ${SCRIPT}"
+    fi
+done
 
 # print some inf
 echo "#####################"
@@ -83,9 +87,6 @@ ${VIRT_BUILDER_CMD} ${BUILDER} \
     ${BUILD_EXTRA_ARGS} \
     --run-command "yum -y install ${RELEASE_RPM}" \
     --run-command "rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-CLOUDROUTER" \
-    --run-command "echo 'net.ipv4.ip_forward = 1' > /etc/sysctl.d/90-cloudrouter-default.conf" \
-    --run-command "echo 'net.ipv6.conf.all.forwarding = 1' >> /etc/sysctl.d/90-cloudrouter-default.conf" \
-    --run-command "echo 'net.ipv6.route.max_size = 50000' >> /etc/sysctl.d/90-cloudrouter-default.conf" \
     --install "${PACKAGES}" \
     --update \
     --format raw \
