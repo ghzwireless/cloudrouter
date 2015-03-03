@@ -11,7 +11,7 @@ chown $(whoami):qemu ${BUILD_DIR}
 FEDORA_ARCH=${FEDORA_ARCH-x86_64}
 FEDORA_VERSION=${FEDORA_VERSION-20}
 FEDORA_RELEASE=${FEDORA_RELEASE-20131211.1}
-CR_REL_RPM="https://cloudrouter.org/repo/beta/x86_64/cloudrouter-release-1-1.noarch.rpm"
+CR_REL_RPM="https://cloudrouter.org/repo/beta/x86_64/cloudrouter-release-1-2.noarch.rpm"
 
 FEDORA_URL_PREFIX=https://dl.fedoraproject.org/pub/fedora/linux/releases/${FEDORA_VERSION}/Images/${FEDORA_ARCH}
 FEDORA_IMAGE_RAW=Fedora-${FEDORA_ARCH}-${FEDORA_VERSION}-${FEDORA_RELEASE}-sda.raw

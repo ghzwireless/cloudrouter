@@ -1,6 +1,6 @@
 Name:           cloudrouter-release
 Version:        1
-Release:        1
+Release:        2
 Summary:        Extra packages for the CloudRouter Software-Defined Interconnect (SDI) platform
 
 Group:          System Environment/Base

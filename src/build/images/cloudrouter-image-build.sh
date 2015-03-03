@@ -6,7 +6,7 @@ ARCH=${ARCH-x86_64}
 PROFILE=$(echo ${PROFILE-minimal}  | tr '[:upper:]' '[:lower:]')
 SCRIPT_HOME=${SCRIPT_HOME-$(dirname "${BASH_SOURCE[0]}")}
 BUILD_DIR=${BUILD_DIR-$(pwd)}
-RELEASE_RPM=${RELEASE_RPM-https://cloudrouter.org/repo/beta/x86_64/cloudrouter-release-1-1.noarch.rpm}
+RELEASE_RPM=${RELEASE_RPM-https://cloudrouter.org/repo/beta/x86_64/cloudrouter-release-1-2.noarch.rpm}
 
 VIRT_BUILDER_CMD=${VIRT_BUILDER_CMD-virt-builder}
 BUILD_EXTRA_ARGS="${BUILD_EXTRA_ARGS}"
@@ -83,6 +83,9 @@ ${VIRT_BUILDER_CMD} ${BUILDER} \
     ${BUILD_EXTRA_ARGS} \
     --run-command "yum -y install ${RELEASE_RPM}" \
     --run-command "rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-CLOUDROUTER" \
+    --run-command "echo 'net.ipv4.ip_forward = 1' > /etc/sysctl.d/90-cloudrouter-default.conf" \
+    --run-command "echo 'net.ipv6.conf.all.forwarding = 1' >> /etc/sysctl.d/90-cloudrouter-default.conf" \
+    --run-command "echo 'net.ipv6.route.max_size = 50000' >> /etc/sysctl.d/90-cloudrouter-default.conf" \
     --install "${PACKAGES}" \
     --update \
     --format raw \
