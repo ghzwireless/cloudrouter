@@ -1,14 +1,20 @@
 #!/usr/bin/env bash
 
-COMPONENTS_DIR=${COMPONENTS_DIR-./components}
+COMPONENTS_DIR=${COMPONENTS_DIR-$(dirname "${BASH_SOURCE[0]}")/components}
 
 RPM_BUILD_SOURCES=$(rpmbuild --eval '%{_sourcedir}')
 RPM_BUILD_RPMS=$(rpmbuild --eval '%{_rpmdir}')
 RPM_BUILD_SRPMS=$(rpmbuild --eval '%{_srcrpmdir}')
 
+if [ $# -eq 0 ]; then
+    COMPONENTS=( $(ls -d ${COMPONENT_DIR}/* | xargs -I {} basename {}) )
+else
+    COMPONENTS=( $@ )
+fi
+
 mkdir -p ${RPM_BUILD_SOURCES}
 
-for COMPONENT in "$@"; do
+for COMPONENT in "${COMPONENTS[@]}"; do
     COMPONENT_DIR=${COMPONENTS_DIR}/${COMPONENT}
     LOG_FILE=build-${COMPONENT}.log
 
