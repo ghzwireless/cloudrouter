@@ -1,13 +1,19 @@
 #!/usr/bin/env bash
 
-COMPONENTS_DIR=${COMPONENTS_DIR-$(dirname "${BASH_SOURCE[0]}")/components}
+COMPONENTS_DIR=${COMPONENTS_DIR-./components}
+
+if [ ! -d ${COMPONENTS_DIR} ]; then
+    echo >&2 "[ERROR] COMPONENTS_DIR=${COMPONENTS_DIR} does not exist." \
+        "This can be set via the COMPONENTS_DIR environment variable."
+    exit 1
+fi
 
 RPM_BUILD_SOURCES=$(rpmbuild --eval '%{_sourcedir}')
 RPM_BUILD_RPMS=$(rpmbuild --eval '%{_rpmdir}')
 RPM_BUILD_SRPMS=$(rpmbuild --eval '%{_srcrpmdir}')
 
 if [ $# -eq 0 ]; then
-    COMPONENTS=( $(ls -d ${COMPONENT_DIR}/* | xargs -I {} basename {}) )
+    COMPONENTS=( $(ls -d ${COMPONENTS_DIR}/* | xargs -I {} basename {}) )
 else
     COMPONENTS=( $@ )
 fi
