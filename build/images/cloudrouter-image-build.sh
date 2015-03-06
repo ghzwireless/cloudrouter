@@ -31,7 +31,7 @@ command -v ${VIRT_BUILDER_CMD} > /dev/null 2>&1 \
 ${VIRT_BUILDER_CMD} --list | grep ${BUILDER} > /dev/null \
     || fail "Builder image  ${BUILDER} not found."
 
-PACKAGES=deltarpm
+PACKAGES="deltarpm,cloud-init"
 PACKAGE_LIST="${SCRIPT_HOME}/package-lists/${PROFILE}"
 if [ -f "${PACKAGE_LIST}" ]; then
     PACKAGES="${PACKAGES}$(cat ${PACKAGE_LIST} | xargs -I {} echo -n ",{}")"
@@ -89,6 +89,7 @@ ${VIRT_BUILDER_CMD} ${BUILDER} \
     --run-command "rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-CLOUDROUTER" \
     --install "${PACKAGES}" \
     --update \
+    --upload ${SCRIPT_HOME}/assets/90-cloudrouter.cfg:/etc/cloud/cloud.cfg.d/ \
     --format raw \
     --output ${OUTPUT} \
     --selinux-relabel \
