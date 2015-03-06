@@ -80,6 +80,8 @@ echo ""
 echo "#####################"
 echo ""
 
+BUILD_RPM_MANIFEST="/tmp/build-rpm-manifest.txt"
+
 # prepare the image
 ${VIRT_BUILDER_CMD} ${BUILDER} \
     --arch ${ARCH} \
@@ -92,13 +94,13 @@ ${VIRT_BUILDER_CMD} ${BUILDER} \
     --upload ${SCRIPT_HOME}/assets/90-cloudrouter.cfg:/etc/cloud/cloud.cfg.d/ \
     --format raw \
     --output ${OUTPUT} \
+    --run-command "rpm -qa | sort -u > ${BUILD_RPM_MANIFEST}" \
     --selinux-relabel \
     --run-command "rpm -qa" \
     --run-command "yum -y clean all" \
     ${BUILD_EXTRA_ARGS_END} | tee ${BUILD_LOG}
 
-# TODO: figure out how to extract manifest
-# cat ${BUILD_LOG} | grep -v "${RELEASE_RPM}" | grep "\.rpm$" \
-#     > ${OUTPUT/.raw/.manifest}
+# extract rpm manifest from build
+virt-cat ${OUTPUT} ${BUILD_RPM_MANIFEST} > ${OUTPUT/.raw/.manifest}
 
 xz --verbose --force ${BUILD_DIR}/*.raw
