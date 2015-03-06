@@ -40,7 +40,8 @@ The following snippet can be used as root to create a user repository.
 ```sh
 # the user you want uploading images to this repo should have read/write access
 REPO_USER=jenkins
-REPO_DIR=$(echo ~${REPO_USER})/virt-builder/repo
+REPO_USER_HOME=$(runuser -l ${REPO_USER} -s /usr/bin/bash -c "echo $HOME")
+REPO_DIR=${REPO_DIR-${REPO_USER_HOME}/virt-builder/repo}
 INDEX_FILE=${REPO_DIR}/index
 
 runuser -l ${REPO_USER} -s /usr/bin/bash -c "mkdir -p ${REPO_DIR}"
