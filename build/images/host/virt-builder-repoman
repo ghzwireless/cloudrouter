@@ -5,7 +5,7 @@ from ConfigParser import ConfigParser
 from hashlib import sha512
 from logging import getLogger, INFO, DEBUG, Formatter, basicConfig
 from os import stat
-from os.path import join, basename
+from os.path import join, basename, dirname, exists
 from subprocess import check_output, check_call
 from shutil import move
 from sys import exit
@@ -40,10 +40,17 @@ def filesize(filename):
     return stat(filename).st_size
 
 
-def xz(filename, keep=False):
+def xz(filename, keep=False, force=False):
     logger.info('Compressing %s (this may take a while) ...', filename)
-    check_call(['xz'] + (['--keep'] if keep else []) + ['--force', filename])
-    return '{filename:s}.xz'.format(filename=filename)
+    output = '{filename:s}.xz'.format(filename=filename)
+    if not force and exists(output):
+        return output
+    check_call(
+        ['xz']
+        + (['--keep'] if keep else [])
+        + ['--force', filename]
+    )
+    return output
 
 
 def get_baseconfig(builder):
@@ -291,7 +298,7 @@ def main():
     if cfg is not None:
         update_repo(args.repo, cfg)
         xzfile = cfg.get('file')
-        src = xzfile
+        src = join(dirname(args.source), xzfile)
         dst = join(get_repobase(args.repo), basename(xzfile))
         logger.info('Adding file at %s ...', dst)
         move(src, dst)
