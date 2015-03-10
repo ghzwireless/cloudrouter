@@ -8,7 +8,7 @@ RPM_BUILD_SRPMS=$(rpmbuild --eval '%{_srcrpmdir}')
 
 function usage(){
     echo "${BASH_SOURCE[0]} [-s|-h]"
-    echo "    -s build only source rpms"
+    echo "    -s build only source rpm (SRPM)"
     echo "    -h help"
     exit 1
 }
