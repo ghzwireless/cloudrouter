@@ -287,18 +287,19 @@ def main():
             args.source, args.expand, args.os, args.version, args.arch,
             args.fmt, args.suffix, args.repo
         )
+        src = join(dirname(args.source), xzfile)
 
     if args.cmd == 'update':
         cfg = update_build(
             args.os, args.version, args.arch, args.fmt, args.suffix, args.repo,
             args.clean,
         )
+        src = cfg.get('file')
 
     # inject new update into repo
     if cfg is not None:
         update_repo(args.repo, cfg)
         xzfile = cfg.get('file')
-        src = join(dirname(args.source), xzfile)
         dst = join(get_repobase(args.repo), basename(xzfile))
         logger.info('Adding file at %s ...', dst)
         move(src, dst)
