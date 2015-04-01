@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 PUB=${PUB-~/.ssh/id_rsa.pub}
-USER=${USER-cloud-user}
+USER=${USER-cloudrouter}
 HOST=${HOST-localhost}
 
 if [ ! -f "${PUB}" ]; then
