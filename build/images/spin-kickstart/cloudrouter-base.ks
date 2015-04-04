@@ -12,9 +12,14 @@ part / --size 4096 --fstype ext4
 services --enabled=NetworkManager --disabled=network,sshd
 
 %include cloudrouter-repo.ks
-%include cloudrouter-branding.ks
+# %include cloudrouter-branding.ks
 
 %packages
+cloudrouter-release
+cloudrouter-release-notes
+-fedora-logos
+-fedora-release
+-fedora-release-notes
 @guest-desktop-agents
 @standard
 @core

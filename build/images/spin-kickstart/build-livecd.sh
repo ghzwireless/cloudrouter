@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 PRODUCT="CloudRouter"
-VERSION="1.0-beta"
+VERSION="1.0"
 FEDORA_BASE="20"
 
 sudo livecd-creator \

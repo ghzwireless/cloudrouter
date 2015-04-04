@@ -2,17 +2,15 @@
 
 %packages
 cloudrouter-release
+cloudrouter-release-notes
 -fedora-logos
 -fedora-release
 -fedora-release-notes
-generic-release
-generic-logos
-generic-release-notes
 %end
 
 %post
 # Fix release
-RELEASE_NAME="CloudRouter 1.0 Beta (Fedora Remix)"
+RELEASE_NAME="CloudRouter 1.0 (Fedora Remix)"
 
 for ISSUE in "/etc/issue" "/etc/issue.net"; do
     cat > ${ISSUE} << EOF
