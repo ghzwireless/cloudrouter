@@ -1,86 +1,9 @@
 # cloudrouter-live.ks
-# 
-# Derrived from https://git.fedorahosted.org/cgit/spin-kickstarts.git/tree/fedora-live-base.ks?h=f20
-#
 
-lang en_US.UTF-8
-keyboard us
-timezone US/Eastern
-auth --useshadow --enablemd5
-selinux --enforcing
-firewall --enabled --service=mdns
-xconfig --startxonboot
-part / --size 4096 --fstype ext4
-services --enabled=NetworkManager --disabled=network,sshd
-
-%include cloudrouter-repo.ks
+%include cloudrouter-base.ks
 
 %packages
-@guest-desktop-agents
-@standard
-@core
-@input-methods
-@hardware-support
-
-
-# Explicitly specified here:
-# <notting> walters: because otherwise dependency loops cause yum issues.
-kernel
-
-# This was added a while ago, I think it falls into the category of
-# "Diagnosis/recovery tool useful from a Live OS image".  Leaving this untouched
-# for now.
-memtest86+
-
-# Make live images easy to shutdown and the like in libvirt
-qemu-guest-agent
-
-bind
-dhcp
-dnsmasq
-dnsmasq-utils
-docker-io
-dpdk
-firewalld
-ipsec-tools
-iputils
-mtr
-net-snmp-utils
-openvpn
-quagga
-radvd
-strongswan
-tcpdump
-traceroute
-xl2tpd
-
-# CloudRouter
-cloudrouter-release
-opendaylight
-bird
-
-nss-mdns
-
-## cleanup
--smartmontools
--rsyslog
--mpage
--sox
--hplip
--hpijs
--numactl
--isdn4k-utils
--autofs
--coolkey
-
-# scanning takes quite a bit of space :/
--xsane
--xsane-gimp
--sane-backends
-
-# remmove plymouth
--plymouth
-
+%include ../package-lists/full
 %end
 
 %post
@@ -279,26 +202,6 @@ for o in \`cat /proc/cmdline\` ; do
     esac
 done
 
-# if liveinst or textinst is given, start anaconda
-if strstr "\`cat /proc/cmdline\`" liveinst ; then
-   plymouth --quit
-   /usr/sbin/liveinst \$ks
-fi
-if strstr "\`cat /proc/cmdline\`" textinst ; then
-   plymouth --quit
-   /usr/sbin/liveinst --text \$ks
-fi
-
-# configure X, allowing user to override xdriver
-if [ -n "\$xdriver" ]; then
-   cat > /etc/X11/xorg.conf.d/00-xdriver.conf <<FOE
-Section "Device"
-	Identifier	"Videocard0"
-	Driver	"\$xdriver"
-EndSection
-FOE
-fi
-
 EOF
 
 chmod 755 /etc/rc.d/init.d/livesys
@@ -312,53 +215,7 @@ chmod 755 /etc/rc.d/init.d/livesys-late
 # enable tmpfs for /tmp
 systemctl enable tmp.mount
 
-# work around for poor key import UI in PackageKit
-rm -f /var/lib/rpm/__db*
-releasever=20
-basearch=$(uname -m)
-rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-$releasever-$basearch
-rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-CLOUDROUTER
-echo "Packages within this LiveCD"
-rpm -qa
-# Note that running rpm recreates the rpm db files which aren't needed or wanted
-rm -f /var/lib/rpm/__db*
-
-# go ahead and pre-make the man -k cache (#455968)
-/usr/bin/mandb
-
-# save a little bit of space at least...
-rm -f /boot/initramfs*
-# make sure there aren't core files lying around
-rm -f /core*
-
-# convince readahead not to collect
-# FIXME: for systemd
-
-# Fix issues
-for ISSUE in "/etc/issue" "/etc/issue.net"; do
-    [[ -f ${ISSUE} ]] && sed -i \
-        's/Fedora.*/CloudRouter 1.0 Beta based on Fedora/' \
-        ${ISSUE}
-done
-
-# Fix grub entries
-find /etc/ -maxdepth 1 -name "grub*.cfg" \
-    -exec sed -i s/"menuentry 'Fedora.*'"/"menuentry 'CloudRouter 1.0 Beta (Fedora 20)'"/ {} \; \
-    -exec sed -i s/" rhgb "/" "/ {} \;
-
-
-# Fixing SELinux context definition errors
-for i in git mediawiki bugzilla mojomojo dspam man2html git; do
-	sed -i s/"object_r:httpd_$i"/"object_r:$i"/ /etc/selinux/targeted/contexts/files/file_contexts
-done
-
-for i in pkcsslotd_unit_file_t couchdb_js_exec_t snapperd_home_t vbetool_exec_t; do
-    echo "Removing from selinux file_contexts: $i"
-	sed -i /"$i"/d /etc/selinux/targeted/contexts/files/file_contexts
-done
-
 %end
-
 
 %post --nochroot
 # only works on x86, x86_64
