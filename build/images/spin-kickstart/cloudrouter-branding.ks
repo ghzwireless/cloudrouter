@@ -14,10 +14,6 @@ generic-release-notes
 # Fix release
 RELEASE_NAME="CloudRouter 1.0 Beta (Fedora Remix)"
 
-cat > /etc/cloudrouter-release << EOF
-${RELEASE_NAME}
-EOF
-
 for ISSUE in "/etc/issue" "/etc/issue.net"; do
     cat > ${ISSUE} << EOF
 ${RELEASE_NAME}
@@ -26,8 +22,13 @@ Kernel \r on an \m (\l)
 EOF
 done
 
-ln -sf /etc/redhat-release /etc/cloudrouter-release
-ln -sf /etc/system-release /etc/cloudrouter-release
+cat > /etc/cloudrouter-release << EOF
+${RELEASE_NAME}
+EOF
+
+for f in "/etc/redhat-release" "/etc/system-release"; do
+    echo ln -sf /etc/cloudrouter-release $f
+done
 
 cat > /etc/os-release << EOF
 NAME=CloudRouter
