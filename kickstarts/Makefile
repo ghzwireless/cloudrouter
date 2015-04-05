@@ -1,24 +1,27 @@
 # Copyright 2015 CloudRouter Project Authors.
 
-PRODUCT     = CloudRouter
-VERSION     = 1.0
-FEDORA_BASE = 20
-IMAGE_NAME  = LiveCD
-LIVE_KS     = cloudrouter-live.ks
+PRODUCT     := CloudRouter
+VERSION     := 1.0
+FEDORA_BASE := 20
+ISO_PREFIX	:= $(PRODUCT)-$(VERSION)
+ISO_FEDORA	:= $(ISO_PREFIX)-Fedora.iso
 
-ISO = $(PRODUCT)-$(VERSION)-$(IMAGE_NAME).iso
+# Args: BASE_DISTRO BASE_VERSION IMAGE_NAME
+live-iso = sudo livecd-creator \
+	--verbose \
+	--product="$(PRODUCT) $(VERSION)" \
+	--config=cloudrouter-$(1)-live.ks \
+	--releasever="$(2)" \
+	--fslabel="$(PRODUCT)-$(VERSION)-$(3)" \
+	--title "$(PRODUCT) $(VERSION) $(3)" \
+	--cache=/var/cache/live
 
-all: $(ISO)
+$(ISO_FEDORA):
+	$(call live-iso,fedora,$(FEDORA_BASE),Fedora)
 
-$(ISO):
-	sudo livecd-creator \
-	    --verbose \
-	    --product="$(PRODUCT) $(VERSION)" \
-	    --releasever="$(FEDORA_BASE)" \
-	    --config=$(LIVE_KS) \
-	    --fslabel="$(PRODUCT)-$(VERSION)-$(IMAGE_NAME)" \
-	    --title "$(PRODUCT) $(VERSION) $(IMAGE_NAME)" \
-	    --cache=/var/cache/live
+fedora-live: $(ISO_FEDORA)
+
+all: fedora-live
 
 # Phony targets for cleanup and similar uses
 #
@@ -26,5 +29,3 @@ $(ISO):
 
 clean:
 	sudo rm -f *.iso
-
-
