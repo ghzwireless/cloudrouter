@@ -1,6 +1,15 @@
 %post
-# Fix releasever in fedora repo files
+# Fixing SELinux context definition errors
+for i in git mediawiki bugzilla mojomojo dspam man2html git; do
+	sed -i s/"object_r:httpd_$i"/"object_r:$i"/ /etc/selinux/targeted/contexts/files/file_contexts
+done
 
+for i in pkcsslotd_unit_file_t couchdb_js_exec_t snapperd_home_t vbetool_exec_t; do
+    echo "Removing from selinux file_contexts: $i"
+	sed -i /"$i"/d /etc/selinux/targeted/contexts/files/file_contexts
+done
+
+# Fix releasever in fedora repo files
 sed -i s/\$releasever/20/ /etc/yum.repos.d/fedora.repo  
 sed -i s/\$releasever/20/ /etc/yum.repos.d/fedora-updates.repo  
 sed -i s/\$releasever/20/ /etc/yum.repos.d/fedora-updates-testing.repo

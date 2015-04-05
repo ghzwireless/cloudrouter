@@ -1,9 +1,6 @@
-# cloudrouter-live.ks
-
-%include cloudrouter-base.ks
-
 %packages
-%include ../package-lists/full
+@hardware-support --optional
+%include ../../package-lists/full
 %end
 
 %post
@@ -126,7 +123,7 @@ if [ -n "\$configdone" ]; then
   exit 0
 fi
 
-# add fedora user with no passwd
+# add cloudrouter user with no passwd
 action "Adding live user" useradd \$USERADDARGS -c "CloudRouter Live System User" cloudrouter
 passwd -d cloudrouter > /dev/null
 usermod -aG wheel cloudrouter > /dev/null
