@@ -1,6 +1,6 @@
 %packages
 @hardware-support --optional
-%include ../../package-lists/full
+%include ../build/images/package-lists/full
 %end
 
 %post
