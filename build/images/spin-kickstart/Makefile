@@ -9,6 +9,8 @@ LIVE_KS     = cloudrouter-live.ks
 ISO = $(PRODUCT)-$(VERSION)-$(IMAGE_NAME).iso
 
 all: $(ISO)
+
+$(ISO):
 	sudo livecd-creator \
 	    --verbose \
 	    --product="$(PRODUCT) $(VERSION)" \

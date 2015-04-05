@@ -71,3 +71,4 @@ rm -f /core*
 %end
 
 %include cloudrouter-selinux-fix.ks
+%include cloudrouter-releasever-fix.ks
