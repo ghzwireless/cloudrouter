@@ -50,6 +50,10 @@ for COMPONENT in "${COMPONENTS[@]}"; do
     LOG_FILE=build-${COMPONENT}.log
 
     if [ -d ${COMPONENT_DIR} ]; then
+        # make if Makefile is provided
+        [[ -f ${COMPONENT_DIR}/Makefile ]] \
+            && ( cd ${COMPONENT_DIR} && make source)
+
         # move all local patches
         find ${COMPONENT_DIR} ! -name "sources" -a ! -name "*.spec" \
             -exec cp {} ${RPM_BUILD_SOURCES}/. \;
