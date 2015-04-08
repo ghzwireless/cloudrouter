@@ -1,7 +1,7 @@
 language: bash
 
 script: 
-  - ./contrib/commit-msg-verify.sh origin/$TRAVIS_BRANCH..FETCH_HEAD
+  - ./contrib-shared/commit-msg-verify.sh origin/$TRAVIS_BRANCH..FETCH_HEAD
 
 notifications:
   irc:
