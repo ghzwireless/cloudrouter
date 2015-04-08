@@ -43,7 +43,7 @@ $(OSV_DIR): $(OUTPUT_DIR)
 		-exec bash -c "patch -p1 < {}" \; )
 
 opendaylight: $(OSV_DIR)
-	$(call build-appliance,cloudrouter/opendaylight,opendaylight$(,)cloud-init$(,)monitoring-agent,OpenDaylight$(space)on$(space)OSv)
+	$(call build-appliance,cloudrouter/opendaylight,opendaylight$(,)cloud-init$(,)monitoring-agent,OpenDaylight$( )on$( )OSv)
 
 # Phony targets for cleanup and similar uses
 #
