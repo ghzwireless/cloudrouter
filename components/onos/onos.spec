@@ -15,6 +15,7 @@ Requires: java-1.7.0-openjdk-devel >= 1.7.0
 Requires(pre): shadow-utils, glibc-common
 Requires(postun): shadow-utils
 BuildRequires: systemd
+Provides: onos
 
 %pre
 %global onos_user onos
