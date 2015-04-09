@@ -1,0 +1,13 @@
+[Unit]
+Description=Open Network Operating System (ONOS)
+Documentation=https://wiki.onosproject.org/display/ONOS/ONOS+Documentation+Library https://cloudrouter.org/
+After=network.service
+
+[Service]
+Type=forking
+ExecStart=/opt/onos/onos/onos-1.1.0/apache-karaf-3.0.2/bin/start
+User=onos
+Group=onos
+
+[Install]
+WantedBy=multi-user.target
