@@ -19,7 +19,7 @@ rootpw --lock --iscrypted locked
 user --name=none
 
 # enable firewall and default services
-firewall --enabled --service=mdns
+firewall --enabled --service=mdns,ssh
 
 # bootloader installation and configuration with kernel parameters
 bootloader --location=mbr --append="console=tty0 console=ttyS0,115200"
