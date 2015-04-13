@@ -88,7 +88,7 @@ ${VIRT_BUILDER_CMD} ${BUILDER} \
     --root-password locked:disabled \
     ${BUILD_EXTRA_ARGS} \
     --run-command "rpm -Uvh ${RELEASE_RPM}" \
-    --run-command "rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-CLOUDROUTER" \
+    --run-command "rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-*" \
     --install "${PACKAGES}" \
     --update \
     --upload ${SCRIPT_HOME}/assets/90-cloudrouter.cfg:/etc/cloud/cloud.cfg.d/ \
