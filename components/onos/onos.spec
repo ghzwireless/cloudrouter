@@ -2,7 +2,7 @@
 
 Name: onos
 Summary: Open Network Operating System
-Version: 1.1
+Version: 1.1.0
 Release: 1
 Source0: http://downloads.onosproject.org/release/onos-1.1.0.tar.gz
 Source1: onos.service
@@ -66,5 +66,5 @@ userdel %{onos_user} && groupdel %{onos_user}
 %attr(0644,-,-) %{_unitdir}/%{name}.service
 
 %changelog
-* Thu Apr 09 2015 David Jorm - 1.1-1
+* Thu Apr 09 2015 David Jorm - 1.1.0-1
 - Initial creation
