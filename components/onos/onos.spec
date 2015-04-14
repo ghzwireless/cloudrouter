@@ -33,7 +33,7 @@ getent group %{onos_user} > /dev/null \
 %global __os_install_post /usr/lib/rpm/brp-compress %{nil}
 
 %description
-OpenDaylight is an open platform for network programmability to enable SDN and create a solid foundation for NFV for networks at any size and scale.
+Open Network Operating System (ONOS) provides the control plane for a software-defined network (SDN), managing network components such as switches and links, and running a variety of applications which provide communication services to end hosts and neighboring networks.
 
 %prep
 %autosetup -N -c -n %{name}
