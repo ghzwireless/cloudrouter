@@ -40,7 +40,7 @@ $(OSV_DIR): $(OUTPUT_DIR)
 	( cd $(OSV_DIR) && git submodule update --init --recursive )
 	( cd $(OSV_DIR) \
 		&& find ../ -maxdepth 1 -type f -name "*.patch" \
-		-exec bash -c "patch -p1 < {}" \; )
+		-exec bash -c "patch -t -p1 < {}" \; )
 
 opendaylight: $(OSV_DIR)
 	$(call build-appliance,cloudrouter/opendaylight,opendaylight$(,)cloud-init$(,)monitoring-agent,OpenDaylight$( )on$( )OSv)
