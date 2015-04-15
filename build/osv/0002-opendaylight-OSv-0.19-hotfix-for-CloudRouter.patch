@@ -5,22 +5,22 @@ Subject: [PATCH] opendaylight: OSv 0.19 hotfix for CloudRouter
 
 Signed-off-by: Arun Babu Neelicattu <arun.neelicattu@gmail.com>
 ---
- opendaylight/Makefile            | 26 +++++++++++--------
- opendaylight/README              |  1 -
- opendaylight/README.md           | 10 ++++++++
- opendaylight/assets/etc/.gitkeep |  0
- opendaylight/module.py           | 54 ++++++++++++++++++++++------------------
- opendaylight/usr.manifest        |  1 -
+ apps/opendaylight/Makefile            | 26 +++++++++++--------
+ apps/opendaylight/README              |  1 -
+ apps/opendaylight/README.md           | 10 ++++++++
+ apps/opendaylight/assets/etc/.gitkeep |  0
+ apps/opendaylight/module.py           | 54 ++++++++++++++++++++++------------------
+ apps/opendaylight/usr.manifest        |  1 -
  6 files changed, 55 insertions(+), 37 deletions(-)
- delete mode 100644 opendaylight/README
- create mode 100644 opendaylight/README.md
- create mode 100644 opendaylight/assets/etc/.gitkeep
- delete mode 100644 opendaylight/usr.manifest
+ delete mode 100644 apps/opendaylight/README
+ create mode 100644 apps/opendaylight/README.md
+ create mode 100644 apps/opendaylight/assets/etc/.gitkeep
+ delete mode 100644 apps/opendaylight/usr.manifest
 
-diff --git a/opendaylight/Makefile b/opendaylight/Makefile
+diff --git a/apps/opendaylight/Makefile b/apps/opendaylight/Makefile
 index f0431ca..2b39c92 100644
---- a/opendaylight/Makefile
-+++ b/opendaylight/Makefile
+--- a/apps/opendaylight/Makefile
++++ b/apps/opendaylight/Makefile
 @@ -1,21 +1,25 @@
 -.PHONY: module
 -
@@ -58,18 +58,18 @@ index f0431ca..2b39c92 100644
  
  clean:
  	rm -rf distribution-karaf-$(VERSION) ROOTFS
-diff --git a/opendaylight/README b/opendaylight/README
+diff --git a/apps/opendaylight/README b/apps/opendaylight/README
 deleted file mode 100644
 index 6723c6e..0000000
---- a/opendaylight/README
+--- a/apps/opendaylight/README
 +++ /dev/null
 @@ -1 +0,0 @@
 -See more http://www.opendaylight.org/
-diff --git a/opendaylight/README.md b/opendaylight/README.md
+diff --git a/apps/opendaylight/README.md b/apps/opendaylight/README.md
 new file mode 100644
 index 0000000..56b3a66
 --- /dev/null
-+++ b/opendaylight/README.md
++++ b/apps/opendaylight/README.md
 @@ -0,0 +1,10 @@
 +# OpenDalylight OSv
 +
@@ -81,13 +81,13 @@ index 0000000..56b3a66
 +| Host Directory | OSv Directory | Description |
 +| -------------- | ------------- | ----------- |
 +| ./assets/etc  | /opendaylight/etc| OpenDaylight configuration files. |
-diff --git a/opendaylight/assets/etc/.gitkeep b/opendaylight/assets/etc/.gitkeep
+diff --git a/apps/opendaylight/assets/etc/.gitkeep b/apps/opendaylight/assets/etc/.gitkeep
 new file mode 100644
 index 0000000..e69de29
-diff --git a/opendaylight/module.py b/opendaylight/module.py
+diff --git a/apps/opendaylight/module.py b/apps/opendaylight/module.py
 index fb45004..cf4655f 100644
---- a/opendaylight/module.py
-+++ b/opendaylight/module.py
+--- a/apps/opendaylight/module.py
++++ b/apps/opendaylight/module.py
 @@ -1,27 +1,33 @@
  from osv.modules import api
  
@@ -146,10 +146,10 @@ index fb45004..cf4655f 100644
 +        'org.apache.karaf.main.Main'
 +    ]
  )
-diff --git a/opendaylight/usr.manifest b/opendaylight/usr.manifest
+diff --git a/apps/opendaylight/usr.manifest b/apps/opendaylight/usr.manifest
 deleted file mode 100644
 index deb0ef2..0000000
---- a/opendaylight/usr.manifest
+--- a/apps/opendaylight/usr.manifest
 +++ /dev/null
 @@ -1 +0,0 @@
 -/opendaylight/**: ${MODULE_DIR}/ROOTFS/opendaylight/**
