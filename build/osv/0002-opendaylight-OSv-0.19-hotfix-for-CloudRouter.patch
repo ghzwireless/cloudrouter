@@ -1,0 +1,158 @@
+From cb8df85d19bc9fd1f94141c86aa8732cdae662ff Mon Sep 17 00:00:00 2001
+From: Arun Babu Neelicattu <arun.neelicattu@gmail.com>
+Date: Thu, 16 Apr 2015 09:10:02 +1000
+Subject: [PATCH] opendaylight: OSv 0.19 hotfix for CloudRouter
+
+Signed-off-by: Arun Babu Neelicattu <arun.neelicattu@gmail.com>
+---
+ opendaylight/Makefile            | 26 +++++++++++--------
+ opendaylight/README              |  1 -
+ opendaylight/README.md           | 10 ++++++++
+ opendaylight/assets/etc/.gitkeep |  0
+ opendaylight/module.py           | 54 ++++++++++++++++++++++------------------
+ opendaylight/usr.manifest        |  1 -
+ 6 files changed, 55 insertions(+), 37 deletions(-)
+ delete mode 100644 opendaylight/README
+ create mode 100644 opendaylight/README.md
+ create mode 100644 opendaylight/assets/etc/.gitkeep
+ delete mode 100644 opendaylight/usr.manifest
+
+diff --git a/opendaylight/Makefile b/opendaylight/Makefile
+index f0431ca..2b39c92 100644
+--- a/opendaylight/Makefile
++++ b/opendaylight/Makefile
+@@ -1,21 +1,25 @@
+-.PHONY: module
+-
+ VERSION := 0.2.3-Helium-SR3
+-URL := https://nexus.opendaylight.org/content/repositories/opendaylight.release/org/opendaylight/integration/distribution-karaf/$(VERSION)/distribution-karaf-$(VERSION).zip
++NAME	:= opendaylight
++DIR		:= distribution-karaf
++TARBALL := $(DIR)-$(VERSION).tar.gz
++URL		:= https://nexus.opendaylight.org/content/groups/public/org/opendaylight/integration/$(DIR)/$(VERSION)/$(TARBALL)
+ 
+-module: ROOTFS
++module: ROOTFS usr.manifest
+ 
+-distribution-karaf-$(VERSION).zip:
++$(TARBALL):
+ 	wget $(URL)
+ 
+-opendaylight: distribution-karaf-$(VERSION).zip
+-	unzip -x distribution-karaf-$(VERSION).zip
++ROOTFS/$(NAME): $(TARBALL)
++	tar xvf $(TARBALL)
++	mkdir -p ROOTFS
++	mv $(DIR)-$(VERSION) ROOTFS/$(NAME)
++	touch ROOTFS/$(NAME)
++	find ./assets/etc -type f -exec cp {} ROOTFS/$(NAME)/etc/. \;
+ 
+-ROOTFS/opendaylight: opendaylight
+-	mkdir -p ROOTFS/opendaylight
+-	cp -a distribution-karaf-$(VERSION)/bin distribution-karaf-$(VERSION)/configuration distribution-karaf-$(VERSION)/data distribution-karaf-$(VERSION)/deploy distribution-karaf-$(VERSION)/etc distribution-karaf-$(VERSION)/externalapps distribution-karaf-$(VERSION)/lib distribution-karaf-$(VERSION)/version.properties distribution-karaf-$(VERSION)/system ROOTFS/opendaylight
++ROOTFS: ROOTFS/$(NAME)
+ 
+-ROOTFS: ROOTFS/opendaylight
++usr.manifest:
++	echo "/$(NAME)/**: \$${MODULE_DIR}/ROOTFS/$(NAME)/**" > usr.manifest
+ 
+ clean:
+ 	rm -rf distribution-karaf-$(VERSION) ROOTFS
+diff --git a/opendaylight/README b/opendaylight/README
+deleted file mode 100644
+index 6723c6e..0000000
+--- a/opendaylight/README
++++ /dev/null
+@@ -1 +0,0 @@
+-See more http://www.opendaylight.org/
+diff --git a/opendaylight/README.md b/opendaylight/README.md
+new file mode 100644
+index 0000000..56b3a66
+--- /dev/null
++++ b/opendaylight/README.md
+@@ -0,0 +1,10 @@
++# OpenDalylight OSv
++
++[OpenDaylight](http://www.opendaylight.org/) is an open platform for network programmability to enable SDN and create a solid foundation for NFV for networks at any size and scale.
++
++## Using assets directory
++If not using as part of an appliance that provides cloud-init, you can inject configuration and/or webapps by placing them in one of the following directories during build time.
++
++| Host Directory | OSv Directory | Description |
++| -------------- | ------------- | ----------- |
++| ./assets/etc  | /opendaylight/etc| OpenDaylight configuration files. |
+diff --git a/opendaylight/assets/etc/.gitkeep b/opendaylight/assets/etc/.gitkeep
+new file mode 100644
+index 0000000..e69de29
+diff --git a/opendaylight/module.py b/opendaylight/module.py
+index fb45004..cf4655f 100644
+--- a/opendaylight/module.py
++++ b/opendaylight/module.py
+@@ -1,27 +1,33 @@
+ from osv.modules import api
+ 
+-api.require('java')
+-
+-default = api.run(
+-    "--cwd=/opendaylight"
+-    "/java.so"
+-    "-Xms128M"
+-    "-Xmx2048m"
+-    "-XX:+UnlockDiagnosticVMOptions"
+-    "-XX:+UnsyncloadClass"
+-    "-XX:MaxPermSize=512m"
+-    "-Dcom.sun.management.jmxremote"
+-    "-Djava.endorsed.dirs=/opendaylight/lib/endorsed"
+-    "-Djava.ext.dirs=/usr/lib/jvm/java/jre/lib/ext:/usr/java/packages/lib/ext:/opendaylight/lib/ext"
+-    "-Dkaraf.instances=/opendaylight/instances"
+-    "-Dkaraf.home=/opendaylight"
+-    "-Dkaraf.base=/opendaylight"
+-    "-Dkaraf.data=/opendaylight/data"
+-    "-Dkaraf.etc=/opendaylight/etc"
+-    "-Djava.io.tmpdir=/opendaylight/data/tmp"
+-    "-Djava.util.logging.config.file=/opendaylight/etc/java.util.logging.properties"
+-    "-Dkaraf.startLocalConsole=true"
+-    "-Dkaraf.startRemoteShell=true"
+-    "-classpath /opendaylight/lib/karaf.branding-1.0.3-Helium-SR3.jar:/opendaylight/lib/karaf-jaas-boot.jar:/opendaylight/lib/karaf.jar:/opendaylight/lib/karaf-jmx-boot.jar:/opendaylight/lib/karaf-org.osgi.core.jar"
+-    "org.apache.karaf.main.Main"
++default = api.run_java(
++    jvm_args=[
++        '-Xms128M',
++        '-Xmx2048m',
++        '-XX:+UnlockDiagnosticVMOptions',
++        '-XX:+UnsyncloadClass',
++        '-XX:MaxPermSize=512m',
++        '-Dcom.sun.management.jmxremote',
++        '-Djava.endorsed.dirs=/opendaylight/lib/endorsed',
++        '-Djava.ext.dirs=/usr/lib/jvm/java/jre/lib/ext:/usr/java/packages/lib/ext:/opendaylight/lib/ext',
++        '-Dkaraf.instances=/opendaylight/instances',
++        '-Dkaraf.home=/opendaylight',
++        '-Dkaraf.base=/opendaylight',
++        '-Dkaraf.data=/opendaylight/data',
++        '-Dkaraf.etc=/opendaylight/etc',
++        '-Djava.io.tmpdir=/opendaylight/data/tmp',
++        '-Djava.util.logging.config.file=/opendaylight/etc/java.util.logging.properties',
++        '-Dkaraf.startLocalConsole=true',
++        '-Dkaraf.startRemoteShell=true',
++    ],
++    classpath=[
++        '/opendaylight/lib/karaf.branding-1.0.3-Helium-SR3.jar',
++        '/opendaylight/lib/karaf-jaas-boot.jar',
++        '/opendaylight/lib/karaf.jar',
++        '/opendaylight/lib/karaf-jmx-boot.jar',
++        '/opendaylight/lib/karaf-org.osgi.core.jar',
++    ],
++    args=[
++        'org.apache.karaf.main.Main'
++    ]
+ )
+diff --git a/opendaylight/usr.manifest b/opendaylight/usr.manifest
+deleted file mode 100644
+index deb0ef2..0000000
+--- a/opendaylight/usr.manifest
++++ /dev/null
+@@ -1 +0,0 @@
+-/opendaylight/**: ${MODULE_DIR}/ROOTFS/opendaylight/**
+-- 
+2.1.0
+
