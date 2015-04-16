@@ -11,7 +11,7 @@ License: ASL 2.0
 URL: http://www.onosproject.org
 BuildArch: noarch
 BuildRoot: %{_tmppath}/%{name}-buildroot
-Requires: java-1.7.0-openjdk-devel >= 1.7.0
+Requires: java-1.8.0-openjdk-devel >= 1.8.0
 Requires(pre): shadow-utils, glibc-common
 Requires(postun): shadow-utils
 BuildRequires: systemd
@@ -67,5 +67,7 @@ userdel %{onos_user} && groupdel %{onos_user}
 %attr(0644,-,-) %{_unitdir}/%{name}.service
 
 %changelog
+* Fri Apr 17 2015 David Jorm - 1.1.0-2
+- Update Java dependency to 1.8
 * Thu Apr 16 2015 David Jorm - 1.1.0-1
 - Initial creation
