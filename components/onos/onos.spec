@@ -3,7 +3,7 @@
 Name: onos
 Summary: Open Network Operating System
 Version: 1.1.0
-Release: 1
+Release: 2
 Source0: http://downloads.onosproject.org/release/onos-1.1.0.tar.gz
 Source1: onos.service
 Group: Applications/Communications
