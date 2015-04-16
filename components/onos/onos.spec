@@ -11,7 +11,7 @@ License: ASL 2.0
 URL: http://www.onosproject.org
 BuildArch: noarch
 BuildRoot: %{_tmppath}/%{name}-buildroot
-Requires: java-1.8.0-openjdk-devel >= 1.8.0
+Requires: java-devel >= 1.8.0
 Requires(pre): shadow-utils, glibc-common
 Requires(postun): shadow-utils
 BuildRequires: systemd
