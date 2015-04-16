@@ -3,7 +3,7 @@
 Name: onos
 Summary: Open Network Operating System
 Version: 1.1.0
-Release: 2
+Release: 3
 Source0: http://downloads.onosproject.org/release/onos-1.1.0.tar.gz
 Source1: onos.service
 Group: Applications/Communications
@@ -66,6 +66,9 @@ userdel %{onos_user} && groupdel %{onos_user}
 %attr(0644,-,-) %{_unitdir}/%{name}.service
 
 %changelog
+* Thu Apr 16 2015 Arun Babu Neelicattu <arun.neelicattu@gmail.com> - 1.1.0-3
+- Fix installation directory setup.
+
 * Fri Apr 17 2015 David Jorm - 1.1.0-2
 - Update Java dependency to 1.8
 * Thu Apr 16 2015 David Jorm - 1.1.0-1
