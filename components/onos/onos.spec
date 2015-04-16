@@ -19,11 +19,11 @@ Provides: onos
 
 %pre
 %global onos_user onos
-%global onos_home /opt/onos
+%global onos_home /opt/%{name}
 
 # Create onos user/group
 getent passwd %{onos_user} > /dev/null \
-    || useradd --system --home-dir %{onos_home} %{onos_user}
+    || useradd --system --no-create-home --home-dir %{onos_home} %{onos_user}
 getent group %{onos_user} > /dev/null \
     || groupadd --system %{onos_user}
 
@@ -41,8 +41,8 @@ Open Network Operating System (ONOS) provides the control plane for a software-d
 %build
 
 %install
-install -d %{buildroot}/%{onos_home}
-cp -R %{_builddir}/%{name} %{buildroot}/%{onos_home}
+install -d %{buildroot}/$(dirname %{onos_home})
+cp -R %{_builddir}/%{name}/%{name}-%{version} %{buildroot}/%{onos_home}
 install -D %{SOURCE1} %{buildroot}/%{_unitdir}/%{name}.service
 
 %clean
@@ -55,7 +55,7 @@ rm -rf %
 %systemd_postun_with_restart %{name}.service
 
 # remove installed files
-rm -rf %{onos_home}/%{name}
+rm -rf %{onos_home}
 
 # remove onos user/group
 userdel %{onos_user} && groupdel %{onos_user}
@@ -63,7 +63,6 @@ userdel %{onos_user} && groupdel %{onos_user}
 %files
 # ONOS uses systemd to run as user:group onos:onos
 %attr(0775,onos,onos) %{onos_home}
-%attr(0775,onos,onos) %{onos_home}/%{name}
 %attr(0644,-,-) %{_unitdir}/%{name}.service
 
 %changelog
