@@ -62,9 +62,10 @@ userdel %{onos_user} && groupdel %{onos_user}
 
 %files
 # ONOS uses systemd to run as user:group onos:onos
+%attr(0775,onos,onos) %{onos_home}
 %attr(0775,onos,onos) %{onos_home}/%{name}
 %attr(0644,-,-) %{_unitdir}/%{name}.service
 
 %changelog
-* Thu Apr 09 2015 David Jorm - 1.1.0-1
+* Thu Apr 16 2015 David Jorm - 1.1.0-1
 - Initial creation
