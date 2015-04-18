@@ -52,7 +52,7 @@ for COMPONENT in "${COMPONENTS[@]}"; do
     if [ -d ${COMPONENT_DIR} ]; then
         # make if Makefile is provided
         [[ -f ${COMPONENT_DIR}/Makefile ]] \
-            && ( cd ${COMPONENT_DIR} && make source)
+            && ( cd ${COMPONENT_DIR} && make clean && make source)
 
         # move all local patches
         find ${COMPONENT_DIR} ! -name "sources" -a ! -name "*.spec" \
