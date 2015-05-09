@@ -29,5 +29,5 @@ if [ ${LAST_BUILD_REMOTE} -gt ${LAST_BUILD_LOCAL} ] ; then
 		echo "Downloaded artifact ${CR_SIGNING_DIR}/${LAST_BUILD_REMOTE}/${FILE_NAME}"
 	done
 	SIGNING_TARGETS=`ls ${CR_SIGNING_DIR}/${LAST_BUILD_REMOTE}/*.rpm`
-	echo "The following artifacts have been downloaded, ready for signing: ${SIGNING_TARGETS}" | mail ${NOTIFICATION_EMAIL}
+	echo "The following artifacts have been downloaded, ready for signing: ${SIGNING_TARGETS}" | mail -s "CloudRouter artifacts are ready to sign" ${NOTIFICATION_EMAIL}
 fi
