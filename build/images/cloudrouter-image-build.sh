@@ -52,6 +52,13 @@ for SCRIPT in ${COMMON_SCRIPT} ${OS_SCRIPT}; do
     fi
 done
 
+# edit release_rpm
+if [ $OS = "CentOS" ];
+then
+	RELEASE_RPM="https://cloudrouter.org/repo/1/x86_64/centos/cloudrouter-release-latest.noarch.rpm"
+fi
+
+
 # print some inf
 echo "#####################"
 echo "# BUILD INFORMATION #"
