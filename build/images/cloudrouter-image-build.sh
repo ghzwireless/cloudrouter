@@ -6,7 +6,7 @@ ARCH=${ARCH-x86_64}
 PROFILE=$(echo ${PROFILE-minimal}  | tr '[:upper:]' '[:lower:]')
 SCRIPT_HOME=${SCRIPT_HOME-$(dirname "${BASH_SOURCE[0]}")}
 BUILD_DIR=${BUILD_DIR-$(pwd)}
-RELEASE_RPM=${RELEASE_RPM-https://cloudrouter.org/repo/beta/x86_64/cloudrouter-release-latest.noarch.rpm}
+RELEASE_RPM=${RELEASE_RPM-https://cloudrouter.org/repo/1/x86_64/cloudrouter-release-${OS}-latest.noarch.rpm}
 
 VIRT_BUILDER_CMD=${VIRT_BUILDER_CMD-virt-builder}
 BUILD_EXTRA_ARGS="${BUILD_EXTRA_ARGS}"
@@ -51,12 +51,6 @@ for SCRIPT in ${COMMON_SCRIPT} ${OS_SCRIPT}; do
         BUILD_EXTRA_ARGS="${BUILD_EXTRA_ARGS} --run ${SCRIPT}"
     fi
 done
-
-# edit release_rpm
-if [ $OS = "CentOS" ];
-then
-	RELEASE_RPM="https://cloudrouter.org/repo/1/x86_64/centos/cloudrouter-release-latest.noarch.rpm"
-fi
 
 
 # print some inf
