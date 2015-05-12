@@ -2,6 +2,6 @@
 %include cloudrouter-fedora-repo.ks
 
 %packages
-cloudrouter-release
-cloudrouter-release-notes
+cloudrouter-release-fedora
+cloudrouter-release-fedora-notes
 %end
