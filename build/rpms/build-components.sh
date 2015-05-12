@@ -5,6 +5,7 @@ COMPONENTS_DIR=${COMPONENTS_DIR-./components}
 RPM_BUILD_SOURCES=$(rpmbuild --eval '%{_sourcedir}')
 RPM_BUILD_RPMS=$(rpmbuild --eval '%{_rpmdir}')
 RPM_BUILD_SRPMS=$(rpmbuild --eval '%{_srcrpmdir}')
+RPM_BUILD_OPTS=(--define="distribution $OS")
 
 function usage(){
     echo "${BASH_SOURCE[0]} [-s|-h]"
@@ -36,11 +37,10 @@ else
     COMPONENTS=( $@ )
 fi
 
-RPM_BUILD_OPTS=""
 if [ -z ${SOURCE_ONLY} ]; then
-    RPM_BUILD_OPTS="${RPM_BUILD_OPTS} -ba"
+    RPM_BUILD_OPTS=("${RPM_BUILD_OPTS[@]}" -ba)
 else
-    RPM_BUILD_OPTS="${RPM_BUILD_OPTS} -bs"
+    RPM_BUILD_OPTS=("${RPM_BUILD_OPTS[@]}" -bs)
 fi
 
 mkdir -p ${RPM_BUILD_SOURCES}
@@ -61,7 +61,7 @@ for COMPONENT in "${COMPONENTS[@]}"; do
         # fetch all externam patches/sources
         2>&1 find ${COMPONENT_DIR} -name "*.spec" \
             -exec spectool --sourcedir --get-files {} \; \
-            -exec rpmbuild ${RPM_BUILD_OPTS} --clean {} \; | tee ${LOG_FILE}
+            -exec rpmbuild "${RPM_BUILD_OPTS[@]}" --clean {} \; | tee ${LOG_FILE}
 
         # lets pull out the rpms created
         find ${RPM_BUILD_RPMS} -name "${COMPONENT}*.rpm" \
