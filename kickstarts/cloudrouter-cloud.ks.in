@@ -1,0 +1,47 @@
+%packages
+cloud-init
+bind
+bird
+dhcp
+dnsmasq
+dnsmasq-utils
+docker-io
+dpdk
+firewalld
+ipsec-tools
+iputils
+mtr
+net-snmp-utils
+onos
+opendaylight
+openvpn
+quagga
+radvd
+strongswan
+tcpdump
+traceroute
+xl2tpd
+%end
+
+%post
+
+# install rpm gpg keys
+/usr/bin/rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-*
+
+# Add cloud init - default user
+/bin/cat >/etc/cloud/cloud.cfg.d/90_cloudrouter.cfg <<-EOF
+system_info:
+  default_user:
+    name: cloudrouter
+    gecos: CloudRouter User
+    lock_passwd: true
+    groups: [wheel, adm, systemd-journal]
+    sudo: ["ALL=(ALL) NOPASSWD:ALL"]
+    shell: /bin/bash
+
+EOF
+
+# Generate rpm manifest file
+/usr/bin/rpm -qa > /tmp/build-rpm-manifest.txt
+
+%end
