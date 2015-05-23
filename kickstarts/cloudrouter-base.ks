@@ -1,6 +1,6 @@
 # cloudrouter-base.ks
 # base kick start file for all cloudrouter kickstart files
-
+install
 text
 lang en_US.UTF-8
 keyboard us
@@ -39,6 +39,10 @@ network --bootproto=dhcp --device=link --activate --onboot=on
 
 # configure services to run at default runlevel
 services --enabled=network,sshd,rsyslog
+
+# Halt the system once configuration has finished.
+poweroff
+
 
 %include cloudrouter-repo.ks
 
