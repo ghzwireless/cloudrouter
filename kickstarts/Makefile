@@ -52,6 +52,6 @@ all: livecd virt-img
 # .PHONY: clean
 
 clean:
-	sudo rm -f *.iso *.raw *.xz $(TMP_KS) $(IMG_MANIFEST)
+	sudo rm -f *.iso *.raw *.xz $(TMP_KS) *.manifest
 	sudo virsh destroy $(TMP_NAME) || true
 	sudo virsh undefine $(TMP_NAME) || true

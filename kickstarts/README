@@ -1,5 +1,14 @@
 Copyright 2015 CloudRouter Project Authors.
 
 This directory contains the kickstart files and scripts required to build the
-CloudRouter live image
+CloudRouter live image and the CloudRouter virt images.
+
+
+To build the Fedora virt image:
+
+ make virt-img OS=fedora OS_VERSION=21 OS_TREE=http://dl.fedoraproject.org/pub/fedora/linux/releases/21/Server/x86_64/os/
+
+To build the CentOS 7 virt image:
+
+ make virt-img OS=centos OS_VERSION=7.1 OS_TREE=http://mirror.centos.org/centos/7/os/x86_64/
 
