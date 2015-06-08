@@ -1,0 +1,1476 @@
+node n1 {
+    type router
+    model router
+    network-config {
+	hostname n1
+	!
+	interface eth0
+	 ip address 10.0.0.1/24
+	 ipv6 address 2001:0::1/64
+	!
+    }
+    canvas c1
+    iconcoords {477.0 379.0}
+    labelcoords {477.0 411.0}
+    interface-peer {eth0 n12}
+    services {bird BIRD_BGP IPForward}
+    custom-config {
+	custom-config-id service:bird
+	custom-command bird
+	config {
+	files=('/etc/bird/bird.conf', )
+	}
+    }
+    custom-config {
+	custom-config-id service:bird:/etc/bird/bird.conf
+	custom-command /etc/bird/bird.conf
+	config {
+	log "/var/log/bird.log" all;
+	debug protocols all;
+	#debug commands 2;
+	
+	router id  10.0.0.1;
+	define myas = 100;
+	
+	function avoid_martians()
+	prefix set martians;
+	{
+	    #martians = [ 169.254.0.0/16+, 172.16.0.0/12+, 192.168.0.0/16+, 10.0.0.0/8+,
+	    #    224.0.0.0/4+, 240.0.0.0/4+, 0.0.0.0/32-, 0.0.0.0/0{25,32}, 0.0.0.0/0{0,7} ];
+	    martians = [ 169.254.0.0/16+, 172.16.0.0/12+, 192.168.0.0/16+,
+	        224.0.0.0/4+, 240.0.0.0/4+, 0.0.0.0/32-, 0.0.0.0/0{25,32}, 0.0.0.0/0{0,7} ];
+	
+	    if net ~ martians then return false;
+	
+	    return true;
+	}
+	
+	function bgp_out(int peeras)
+	{
+	    if ! (source = RTS_BGP ) then return false;
+	    if peeras > 65535 then return true; # communities does not support AS32
+	    if (0,peeras) ~ bgp_community then return true;
+	    if (myas,peeras) ~ bgp_community then return true;
+	    if (0, myas) ~ bgp_community then return false;
+	
+	    return true;
+	}
+	
+	protocol kernel {
+	    persist;                # Don't remove routes on BIRD shutdown
+	    scan time 200;          # Scan kernel routing table every 200 seconds
+	    export all;
+	    import all;
+	}
+	
+	protocol device {
+	    scan time 10;           # Scan interfaces every 10 seconds
+	}
+	
+	table T200;
+	filter bgp_in_AS200
+	prefix set allnet;
+	int set allas;
+	{
+	    if ! (avoid_martians()) then reject;
+	    if (bgp_path.first != 200 ) then reject;
+	    allas = [ 100, 200, 300, 400, 500 ];
+	    if !(bgp_path.last ~ allas) then reject;
+	    allnet = [ 10.0.1.0/24, 10.0.2.0/24, 10.0.3.0/24, 10.0.4.0/24 ];
+	    if ! (net ~ allnet) then reject;
+	    accept;
+	}
+	
+	protocol pipe P200 {
+	  description "AS-200";
+	  table master;
+	  mode transparent;
+	  peer table T200;
+	  import filter bgp_in_AS200;
+	  export where bgp_out(200);
+	}
+	
+	protocol bgp toAS200 {
+	    local as myas;
+	    neighbor 10.0.0.2 as 200;
+	    export all;
+	    import all;
+	    route limit 1000;
+	    table T200;
+	    rs client;
+	}
+	
+	table T300;
+	filter bgp_in_AS300
+	prefix set allnet;
+	int set allas;
+	{
+	    if ! (avoid_martians()) then reject;
+	    if (bgp_path.first != 300 ) then reject;
+	    allas = [ 100, 200, 300, 400, 500 ];
+	    if !(bgp_path.last ~ allas) then reject;
+	    allnet = [ 10.0.1.0/24, 10.0.2.0/24, 10.0.3.0/24, 10.0.4.0/24 ];
+	    if ! (net ~ allnet) then reject;
+	    accept;
+	}
+	
+	protocol pipe P300 {
+	  description "AS-300";
+	  table master;
+	  mode transparent;
+	  peer table T300;
+	  import filter bgp_in_AS300;
+	  export where bgp_out(300);
+	}
+	
+	protocol bgp toAS300 {
+	    local as myas;
+	    neighbor 10.0.0.3 as 300;
+	    export all;
+	    import all;
+	    route limit 1000;
+	    table T300;
+	    rs client;
+	}
+	
+	
+	table T400;
+	filter bgp_in_AS400
+	prefix set allnet;
+	int set allas;
+	{
+	    if ! (avoid_martians()) then reject;
+	    if (bgp_path.first != 400 ) then reject;
+	    allas = [ 100, 200, 300, 400, 500 ];
+	    if !(bgp_path.last ~ allas) then reject;
+	    allnet = [ 10.0.1.0/24, 10.0.2.0/24, 10.0.3.0/24, 10.0.4.0/24 ];
+	    if ! (net ~ allnet) then reject;
+	    accept;
+	}
+	
+	protocol pipe P400 {
+	  description "AS-400";
+	  table master;
+	  mode transparent;
+	  peer table T400;
+	  import filter bgp_in_AS400;
+	  export where bgp_out(400);
+	}
+	
+	
+	protocol bgp toAS400 {
+	    local as myas;                      
+	    neighbor 10.0.0.4 as 400;
+	    export all;
+	    import all;
+	    route limit 1000;
+	    table T400;
+	    rs client;
+	}
+	
+	table T500;
+	filter bgp_in_AS500
+	prefix set allnet;
+	int set allas;
+	{
+	    if ! (avoid_martians()) then reject;
+	    if (bgp_path.first != 500 ) then reject;
+	    allas = [ 100, 200, 300, 400, 500 ];
+	    if !(bgp_path.last ~ allas) then reject;
+	    allnet = [ 10.0.1.0/24, 10.0.2.0/24, 10.0.3.0/24, 10.0.4.0/24 ];
+	    if ! (net ~ allnet) then reject;
+	    accept;
+	}
+	
+	protocol pipe P500 {
+	  description "AS-500";
+	  table master;
+	  mode transparent;
+	  peer table T500;
+	  import filter bgp_in_AS500;
+	  export where bgp_out(500);
+	}
+	
+	protocol bgp toAS500 {
+	    local as myas;                      
+	    neighbor 10.0.0.5 as 500;
+	    export all;
+	    import all;
+	    route limit 1000;
+	    table T500;
+	    rs client;
+	}
+	
+	}
+    }
+}
+
+node n2 {
+    type router
+    model router
+    network-config {
+	hostname n2
+	!
+	interface eth2
+	 ip address 10.0.10.2/24
+	 ipv6 address 2001:10::2/64
+	!
+	interface eth1
+	 ip address 10.0.1.1/24
+	 ipv6 address 2001:1::1/64
+	!
+	interface eth0
+	 ip address 10.0.0.2/24
+	 ipv6 address 2001:0::2/64
+	!
+    }
+    canvas c1
+    iconcoords {106.0 634.0}
+    labelcoords {106.0 666.0}
+    interface-peer {eth0 n12}
+    interface-peer {eth1 n13}
+    services {bird BIRD_BGP IPForward DefaultRoute}
+    interface-peer {eth2 n6}
+    custom-config {
+	custom-config-id service:bird
+	custom-command bird
+	config {
+	files=('/etc/bird/bird.conf', )
+	}
+    }
+    custom-config {
+	custom-config-id service:bird:/etc/bird/bird.conf
+	custom-command /etc/bird/bird.conf
+	config {
+	log "/var/log/bird.log" all;
+	#debug protocols all;
+	#debug commands 2;
+	
+	router id  10.0.0.2;       # Mandatory for IPv6, may be automatic for IPv4
+	
+	protocol kernel {
+	    persist;                # Don't remove routes on BIRD shutdown
+	    scan time 200;          # Scan kernel routing table every 200 seconds
+	    export all;
+	    import all;
+	}
+	
+	protocol device {
+	    scan time 10;           # Scan interfaces every 10 seconds
+	}
+	
+	protocol bgp toRouteServer {
+	    local as 200;                      # Customize your AS number
+	    neighbor 10.0.0.1 as 100;    # Customize neighbor AS number && IP
+	    export all;
+	    import all;
+	}
+	
+	protocol direct {
+	    interface "*";
+	}
+	
+	protocol bgp toTransit {
+	    local as 200;
+	    neighbor 10.0.10.1 as 900;
+	    export all;
+	    import all;
+	}
+	
+	}
+    }
+}
+
+node n3 {
+    type router
+    model router
+    network-config {
+	hostname n3
+	!
+	interface eth2
+	 ip address 10.0.13.2/24
+	 ipv6 address 2001:13::2/64
+	!
+	interface eth1
+	 ip address 10.0.2.1/24
+	 ipv6 address 2001:2::1/64
+	!
+	interface eth0
+	 ip address 10.0.0.3/24
+	 ipv6 address 2001:0::3/64
+	!
+    }
+    canvas c1
+    iconcoords {295.0 629.0}
+    labelcoords {295.0 661.0}
+    interface-peer {eth0 n12}
+    interface-peer {eth1 n14}
+    services {bird BIRD_BGP IPForward DefaultRoute}
+    interface-peer {eth2 n21}
+    custom-config {
+	custom-config-id service:bird
+	custom-command bird
+	config {
+	files=('/etc/bird/bird.conf', )
+	}
+    }
+    custom-config {
+	custom-config-id service:bird:/etc/bird/bird.conf
+	custom-command /etc/bird/bird.conf
+	config {
+	log "/var/log/bird.log" all;
+	#debug protocols all;
+	#debug commands 2;
+	
+	router id  10.0.0.3;       # Mandatory for IPv6, may be automatic for IPv4
+	
+	protocol kernel {
+	    persist;                # Don't remove routes on BIRD shutdown
+	    scan time 200;          # Scan kernel routing table every 200 seconds
+	    export all;
+	    import all;
+	}
+	
+	protocol device {
+	    scan time 10;           # Scan interfaces every 10 seconds
+	}
+	
+	protocol bgp toRouteServer {
+	    local as 300;                      # Customize your AS number
+	    neighbor 10.0.0.1 as 100;    # Customize neighbor AS number && IP
+	    export all;
+	    import all;
+	}
+	
+	protocol direct {
+	    interface "*";
+	}
+	
+	protocol bgp toTransit {
+	    local as 300;
+	    neighbor 10.0.13.1 as 900;
+	    export all;
+	    import all;
+	}
+	
+	}
+    }
+}
+
+node n4 {
+    type router
+    model router
+    network-config {
+	hostname n4
+	!
+	interface eth2
+	 ip address 10.0.14.2/24
+	 ipv6 address 2001:14::2/64
+	!
+	interface eth1
+	 ip address 10.0.3.1/24
+	 ipv6 address 2001:3::1/64
+	!
+	interface eth0
+	 ip address 10.0.0.4/24
+	 ipv6 address 2001:0::4/64
+	!
+    }
+    canvas c1
+    iconcoords {724.0 625.0}
+    labelcoords {724.0 657.0}
+    interface-peer {eth0 n12}
+    interface-peer {eth1 n15}
+    services {bird BIRD_BGP IPForward}
+    interface-peer {eth2 n22}
+    custom-config {
+	custom-config-id service:bird
+	custom-command bird
+	config {
+	files=('/etc/bird/bird.conf', )
+	}
+    }
+    custom-config {
+	custom-config-id service:bird:/etc/bird/bird.conf
+	custom-command /etc/bird/bird.conf
+	config {
+	log "/var/log/bird.log" all;
+	#debug protocols all;
+	#debug commands 2;
+	
+	router id  10.0.0.4;       # Mandatory for IPv6, may be automatic for IPv4
+	
+	protocol kernel {
+	    persist;                # Don't remove routes on BIRD shutdown
+	    scan time 200;          # Scan kernel routing table every 200 seconds
+	    export all;
+	    import all;
+	}
+	
+	protocol device {
+	    scan time 10;           # Scan interfaces every 10 seconds
+	}
+	
+	protocol bgp toRouteServer {
+	    local as 400;                      # Customize your AS number
+	    neighbor 10.0.0.1 as 100;    # Customize neighbor AS number && IP
+	    export all;
+	    import all;
+	}
+	
+	protocol direct {
+	    interface "*";
+	}
+	
+	protocol bgp toTransit {
+	    local as 400;
+	    neighbor 10.0.14.1 as 900;
+	    export all;
+	    import all;
+	}
+	
+	}
+    }
+}
+
+node n5 {
+    type router
+    model router
+    network-config {
+	hostname n5
+	!
+	interface eth2
+	 ip address 10.0.15.2/24
+	 ipv6 address 2001:15::2/64
+	!
+	interface eth1
+	 ip address 10.0.4.1/24
+	 ipv6 address 2001:4::1/64
+	!
+	interface eth0
+	 ip address 10.0.0.5/24
+	 ipv6 address 2001:0::5/64
+	!
+    }
+    canvas c1
+    iconcoords {919.0 626.0}
+    labelcoords {919.0 658.0}
+    interface-peer {eth0 n12}
+    interface-peer {eth1 n16}
+    services {bird BIRD_BGP IPForward}
+    interface-peer {eth2 n11}
+    custom-config {
+	custom-config-id service:bird
+	custom-command bird
+	config {
+	files=('/etc/bird/bird.conf', )
+	}
+    }
+    custom-config {
+	custom-config-id service:bird:/etc/bird/bird.conf
+	custom-command /etc/bird/bird.conf
+	config {
+	log "/var/log/bird.log" all;
+	#debug protocols all;
+	#debug commands 2;
+	
+	router id  10.0.0.5;       # Mandatory for IPv6, may be automatic for IPv4
+	
+	protocol kernel {
+	    persist;                # Don't remove routes on BIRD shutdown
+	    scan time 200;          # Scan kernel routing table every 200 seconds
+	    export all;
+	    import all;
+	}
+	
+	protocol device {
+	    scan time 10;           # Scan interfaces every 10 seconds
+	}
+	
+	protocol bgp toRouteServer {
+	    local as 500;                      # Customize your AS number
+	    neighbor 10.0.0.1 as 100;    # Customize neighbor AS number && IP
+	    export all;
+	    import all;
+	}
+	
+	protocol direct {
+	    interface "*";
+	}
+	
+	protocol bgp toTransit {
+	    local as 500;
+	    neighbor 10.0.15.1 as 900;
+	    export all;
+	    import all;
+	}
+	
+	}
+    }
+}
+
+node n6 {
+    type router
+    model router
+    network-config {
+	hostname n6
+	!
+	interface eth0
+	 ip address 10.0.5.2/24
+	 ipv6 address 2001:5::2/64
+	!
+	interface eth1
+	 ip address 10.0.10.1/24
+	 ipv6 address 2001:10::1/64
+	!
+    }
+    canvas c1
+    iconcoords {87.0 171.0}
+    labelcoords {87.0 203.0}
+    services {bird BIRD_OSPFv2 BIRD_BGP IPForward}
+    custom-config {
+	custom-config-id service:bird
+	custom-command bird
+	config {
+	files=('/etc/bird/bird.conf', )
+	}
+    }
+    custom-config {
+	custom-config-id service:bird:/etc/bird/bird.conf
+	custom-command /etc/bird/bird.conf
+	config {
+	log "/var/log/bird.log" all;
+	#debug protocols all;
+	#debug commands 2;
+	
+	router id  10.0.10.1;       # Mandatory for IPv6, may be automatic for IPv4
+	
+	protocol kernel {
+	    persist;                # Don't remove routes on BIRD shutdown
+	    scan time 200;          # Scan kernel routing table every 200 seconds
+	    export all;
+	    import all;
+	}
+	
+	protocol device {
+	    scan time 10;           # Scan interfaces every 10 seconds
+	}
+	
+	protocol direct {
+	    interface "*";
+	}
+	
+	protocol ospf {
+	    export filter {
+	        if source = RTS_BGP then {
+	            ospf_metric1 = 100;
+	            accept;
+	        }
+	        accept;
+	    };
+	    area 0.0.0.0 {
+	        interface "eth0";
+	    };
+	}
+	
+	protocol bgp {
+	    local as 900;
+	    neighbor 10.0.10.2 as 200;
+	    export all;
+	    import all;
+	}
+	
+	}
+    }
+    interface-peer {eth1 n2}
+    interface-peer {eth0 n10}
+}
+
+node n10 {
+    type router
+    model router
+    network-config {
+	hostname n10
+	!
+	interface eth4
+	 ip address 10.0.6.1/24
+	 ipv6 address 2001:6::1/64
+	!
+	interface eth0
+	 ip address 10.0.5.1/24
+	 ipv6 address 2001:5::1/64
+	!
+	interface eth3
+	 ip address 10.0.16.1/24
+	 ipv6 address 2001:16::1/64
+	!
+	interface eth2
+	 ip address 10.0.12.1/24
+	 ipv6 address 2001:12::1/64
+	!
+	interface eth1
+	 ip address 10.0.9.1/24
+	 ipv6 address 2001:9::1/64
+	!
+    }
+    canvas c1
+    iconcoords {409.0 39.0}
+    labelcoords {409.0 71.0}
+    interface-peer {eth1 n11}
+    services {bird BIRD_OSPFv2 IPForward}
+    interface-peer {eth2 n22}
+    interface-peer {eth3 n26}
+    custom-config {
+	custom-config-id service:bird
+	custom-command bird
+	config {
+	files=('/etc/bird/bird.conf', )
+	}
+    }
+    custom-config {
+	custom-config-id service:bird:/etc/bird/bird.conf
+	custom-command /etc/bird/bird.conf
+	config {
+	log "/var/log/bird.log" all;
+	#debug protocols all;
+	#debug commands 2;
+	
+	router id  10.0.5.1;       # Mandatory for IPv6, may be automatic for IPv4
+	
+	protocol kernel {
+	    persist;                # Don't remove routes on BIRD shutdown
+	    scan time 200;          # Scan kernel routing table every 200 seconds
+	    export all;
+	    import all;
+	}
+	
+	protocol device {
+	    scan time 10;           # Scan interfaces every 10 seconds
+	}
+	
+	protocol direct {
+	    interface "*";
+	}
+	
+	protocol ospf {
+	    export filter {
+	        if source = RTS_BGP then {
+	            ospf_metric1 = 100;
+	            accept;
+	        }
+	        accept;
+	    };
+	    area 0.0.0.0 {
+	        interface "eth0";
+	        interface "eth1";
+	        interface "eth2";
+	        interface "eth3";
+	        interface "eth4";
+	    };
+	}
+	
+	}
+    }
+    interface-peer {eth0 n6}
+    interface-peer {eth4 n21}
+}
+
+node n11 {
+    type router
+    model router
+    network-config {
+	hostname n11
+	!
+	interface eth1
+	 ip address 10.0.15.1/24
+	 ipv6 address 2001:15::1/64
+	!
+	interface eth0
+	 ip address 10.0.9.2/24
+	 ipv6 address 2001:9::2/64
+	!
+    }
+    canvas c1
+    iconcoords {921.0 177.0}
+    labelcoords {921.0 209.0}
+    interface-peer {eth0 n10}
+    services {bird BIRD_OSPFv2 BIRD_BGP IPForward}
+    interface-peer {eth1 n5}
+    custom-config {
+	custom-config-id service:bird
+	custom-command bird
+	config {
+	files=('/etc/bird/bird.conf', )
+	}
+    }
+    custom-config {
+	custom-config-id service:bird:/etc/bird/bird.conf
+	custom-command /etc/bird/bird.conf
+	config {
+	log "/var/log/bird.log" all;
+	#debug protocols all;
+	#debug commands 2;
+	
+	router id  10.0.15.1;       # Mandatory for IPv6, may be automatic for IPv4
+	
+	protocol kernel {
+	    persist;                # Don't remove routes on BIRD shutdown
+	    scan time 200;          # Scan kernel routing table every 200 seconds
+	    export all;
+	    import all;
+	}
+	
+	protocol device {
+	    scan time 10;           # Scan interfaces every 10 seconds
+	}
+	
+	protocol direct {
+	    interface "*";
+	}
+	
+	protocol ospf {
+	    export filter {
+	        if source = RTS_BGP then {
+	            ospf_metric1 = 100;
+	            accept;
+	        }
+	        accept;
+	    };
+	    area 0.0.0.0 {
+	        interface "eth0";
+	    };
+	}
+	
+	protocol bgp {
+	    local as 900;
+	    neighbor 10.0.15.2 as 500;
+	    export all;
+	    import all;
+	}
+	
+	}
+    }
+}
+
+node n12 {
+    type lanswitch
+    network-config {
+	hostname n12
+	!
+    }
+    canvas c1
+    iconcoords {476.0 463.0}
+    labelcoords {476.0 487.0}
+    interface-peer {e0 n1}
+    interface-peer {e1 n2}
+    interface-peer {e2 n3}
+    interface-peer {e3 n4}
+    interface-peer {e4 n5}
+}
+
+node n13 {
+    type lanswitch
+    network-config {
+	hostname n13
+	!
+    }
+    canvas c1
+    iconcoords {32.0 674.0}
+    labelcoords {32.0 698.0}
+    interface-peer {e0 n2}
+    interface-peer {e1 n17}
+}
+
+node n14 {
+    type lanswitch
+    network-config {
+	hostname n14
+	!
+    }
+    canvas c1
+    iconcoords {233.0 667.0}
+    labelcoords {233.0 691.0}
+    interface-peer {e0 n3}
+    interface-peer {e1 n18}
+}
+
+node n15 {
+    type lanswitch
+    network-config {
+	hostname n15
+	!
+    }
+    canvas c1
+    iconcoords {660.0 677.0}
+    labelcoords {660.0 701.0}
+    interface-peer {e0 n4}
+    interface-peer {e1 n19}
+}
+
+node n16 {
+    type lanswitch
+    network-config {
+	hostname n16
+	!
+    }
+    canvas c1
+    iconcoords {848.0 703.0}
+    labelcoords {848.0 727.0}
+    interface-peer {e0 n5}
+    interface-peer {e1 n20}
+}
+
+node n17 {
+    type router
+    model host
+    network-config {
+	hostname n17
+	!
+	interface eth0
+	 ip address 10.0.1.10/24
+	 ipv6 address 2001:1::10/64
+	!
+    }
+    canvas c1
+    iconcoords {161.0 689.0}
+    labelcoords {161.0 721.0}
+    interface-peer {eth0 n13}
+}
+
+node n18 {
+    type router
+    model host
+    network-config {
+	hostname n18
+	!
+	interface eth0
+	 ip address 10.0.2.10/24
+	 ipv6 address 2001:2::10/64
+	!
+    }
+    canvas c1
+    iconcoords {350.0 689.0}
+    labelcoords {350.0 721.0}
+    interface-peer {eth0 n14}
+}
+
+node n19 {
+    type router
+    model host
+    network-config {
+	hostname n19
+	!
+	interface eth0
+	 ip address 10.0.3.10/24
+	 ipv6 address 2001:3::10/64
+	!
+    }
+    canvas c1
+    iconcoords {788.0 696.0}
+    labelcoords {788.0 728.0}
+    interface-peer {eth0 n15}
+}
+
+node n20 {
+    type router
+    model host
+    network-config {
+	hostname n20
+	!
+	interface eth0
+	 ip address 10.0.4.10/24
+	 ipv6 address 2001:4::10/64
+	!
+    }
+    canvas c1
+    iconcoords {952.0 677.0}
+    labelcoords {952.0 709.0}
+    interface-peer {eth0 n16}
+}
+
+node n21 {
+    type router
+    model router
+    network-config {
+	hostname n21
+	!
+	interface eth0
+	 ip address 10.0.6.2/24
+	 ipv6 address 2001:6::2/64
+	!
+	interface eth1
+	 ip address 10.0.13.1/24
+	 ipv6 address 2001:13::1/64
+	!
+    }
+    canvas c1
+    iconcoords {275.0 175.0}
+    labelcoords {275.0 207.0}
+    services {bird BIRD_OSPFv2 BIRD_BGP IPForward}
+    interface-peer {eth1 n3}
+    custom-config {
+	custom-config-id service:bird
+	custom-command bird
+	config {
+	files=('/etc/bird/bird.conf', )
+	}
+    }
+    custom-config {
+	custom-config-id service:bird:/etc/bird/bird.conf
+	custom-command /etc/bird/bird.conf
+	config {
+	log "/var/log/bird.log" all;
+	#debug protocols all;
+	#debug commands 2;
+	
+	router id  10.0.13.1;       # Mandatory for IPv6, may be automatic for IPv4
+	
+	protocol kernel {
+	    persist;                # Don't remove routes on BIRD shutdown
+	    scan time 200;          # Scan kernel routing table every 200 seconds
+	    export all;
+	    import all;
+	}
+	
+	protocol device {
+	    scan time 10;           # Scan interfaces every 10 seconds
+	}
+	
+	protocol direct {
+	    interface "*";
+	}
+	
+	protocol ospf {
+	    export filter {
+	        if source = RTS_BGP then {
+	            ospf_metric1 = 100;
+	            accept;
+	        }
+	        accept;
+	    };
+	    area 0.0.0.0 {
+	        interface "eth0";
+	    };
+	}
+	
+	protocol bgp {
+	    local as 900;
+	    neighbor 10.0.13.2 as 300;
+	    export all;
+	    import all;
+	}
+	
+	}
+    }
+    interface-peer {eth0 n10}
+}
+
+node n22 {
+    type router
+    model router
+    network-config {
+	hostname n22
+	!
+	interface eth1
+	 ip address 10.0.14.1/24
+	 ipv6 address 2001:14::1/64
+	!
+	interface eth0
+	 ip address 10.0.12.2/24
+	 ipv6 address 2001:12::2/64
+	!
+    }
+    canvas c1
+    iconcoords {715.0 188.0}
+    labelcoords {715.0 220.0}
+    interface-peer {eth0 n10}
+    services {bird BIRD_OSPFv2 BIRD_BGP IPForward}
+    interface-peer {eth1 n4}
+    custom-config {
+	custom-config-id service:bird
+	custom-command bird
+	config {
+	files=('/etc/bird/bird.conf', )
+	}
+    }
+    custom-config {
+	custom-config-id service:bird:/etc/bird/bird.conf
+	custom-command /etc/bird/bird.conf
+	config {
+	log "/var/log/bird.log" all;
+	#debug protocols all;
+	#debug commands 2;
+	
+	router id  10.0.14.1;       # Mandatory for IPv6, may be automatic for IPv4
+	
+	protocol kernel {
+	    persist;                # Don't remove routes on BIRD shutdown
+	    scan time 200;          # Scan kernel routing table every 200 seconds
+	    export all;
+	    import all;
+	}
+	
+	protocol device {
+	    scan time 10;           # Scan interfaces every 10 seconds
+	}
+	
+	protocol direct {
+	    interface "*";
+	}
+	
+	protocol ospf {
+	    export filter {
+	        if source = RTS_BGP then {
+	            ospf_metric1 = 100;
+	            accept;
+	        }
+	        accept;
+	    };
+	    area 0.0.0.0 {
+	        interface "eth0";
+	    };
+	}
+	
+	protocol bgp {
+	    local as 900;
+	    neighbor 10.0.14.2 as 400;
+	    export all;
+	    import all;
+	}
+	
+	}
+    }
+}
+
+node n23 {
+    type router
+    model router
+    network-config {
+	hostname n23
+	!
+	interface eth0
+	 ip address 10.0.18.2/24
+	 ipv6 address 2001:18::2/64
+	!
+	interface eth1
+	 ip address 10.0.17.1/24
+	 ipv6 address 2001:17::1/64
+	!
+    }
+    canvas c1
+    iconcoords {580.0 627.0}
+    labelcoords {580.0 659.0}
+    interface-peer {eth1 n24}
+    custom-config {
+	custom-config-id service:bird
+	custom-command bird
+	config {
+	files=('/etc/bird/bird.conf', )
+	}
+    }
+    custom-config {
+	custom-config-id service:bird:/etc/bird/bird.conf
+	custom-command /etc/bird/bird.conf
+	config {
+	log "/var/log/bird.log" all;
+	#debug protocols all;
+	#debug commands 2;
+	
+	router id  10.0.18.2;       # Mandatory for IPv6, may be automatic for IPv4
+	
+	protocol kernel {
+	    persist;                # Don't remove routes on BIRD shutdown
+	    scan time 200;          # Scan kernel routing table every 200 seconds
+	    export all;
+	    import all;
+	}
+	
+	protocol device {
+	    scan time 10;           # Scan interfaces every 10 seconds
+	}
+	
+	protocol direct {
+	    interface "*";
+	}
+	
+	protocol bgp toTransit {
+	    local as 800;
+	    neighbor 10.0.18.1 as 900;
+	    export all;
+	    import all;
+	}
+	
+	}
+    }
+    services {bird BIRD_BGP IPForward}
+    interface-peer {eth0 n26}
+}
+
+node n24 {
+    type lanswitch
+    network-config {
+	hostname n24
+	!
+    }
+    canvas c1
+    iconcoords {491.0 652.0}
+    labelcoords {491.0 676.0}
+    interface-peer {e0 n23}
+    interface-peer {e1 n25}
+}
+
+node n25 {
+    type router
+    model host
+    network-config {
+	hostname n25
+	!
+	interface eth0
+	 ip address 10.0.17.10/24
+	 ipv6 address 2001:17::10/64
+	!
+    }
+    canvas c1
+    iconcoords {586.0 694.0}
+    labelcoords {586.0 726.0}
+    interface-peer {eth0 n24}
+}
+
+node n26 {
+    type router
+    model router
+    network-config {
+	hostname n26
+	!
+	interface eth1
+	 ip address 10.0.18.1/24
+	 ipv6 address 2001:18::1/64
+	!
+	interface eth0
+	 ip address 10.0.16.2/24
+	 ipv6 address 2001:16::2/64
+	!
+    }
+    canvas c1
+    iconcoords {577.0 187.0}
+    labelcoords {577.0 219.0}
+    custom-config {
+	custom-config-id service:bird
+	custom-command bird
+	config {
+	files=('/etc/bird/bird.conf', )
+	}
+    }
+    custom-config {
+	custom-config-id service:bird:/etc/bird/bird.conf
+	custom-command /etc/bird/bird.conf
+	config {
+	log "/var/log/bird.log" all;
+	#debug protocols all;
+	#debug commands 2;
+	
+	router id  10.0.18.1;       # Mandatory for IPv6, may be automatic for IPv4
+	
+	protocol kernel {
+	    persist;                # Don't remove routes on BIRD shutdown
+	    scan time 200;          # Scan kernel routing table every 200 seconds
+	    export all;
+	    import all;
+	}
+	
+	protocol device {
+	    scan time 10;           # Scan interfaces every 10 seconds
+	}
+	
+	protocol direct {
+	    interface "*";
+	}
+	
+	protocol ospf {
+	    export filter {
+	        if source = RTS_BGP then {
+	            ospf_metric1 = 100;
+	            accept;
+	        }
+	        accept;
+	    };
+	    area 0.0.0.0 {
+	        interface "eth0";
+	    };
+	}
+	
+	protocol bgp {
+	    local as 900;
+	    neighbor 10.0.18.2 as 800;
+	    export all;
+	    import all;
+	}
+	
+	}
+    }
+    services {bird BIRD_OSPFv2 BIRD_BGP IPForward}
+    interface-peer {eth0 n10}
+    interface-peer {eth1 n23}
+}
+
+link l1 {
+    nodes {n1 n12}
+    bandwidth 0
+}
+
+link l2 {
+    nodes {n12 n2}
+    bandwidth 0
+}
+
+link l3 {
+    nodes {n12 n3}
+    bandwidth 0
+}
+
+link l4 {
+    nodes {n12 n4}
+    bandwidth 0
+}
+
+link l5 {
+    nodes {n12 n5}
+    bandwidth 0
+}
+
+link l6 {
+    nodes {n2 n13}
+    bandwidth 0
+}
+
+link l7 {
+    nodes {n3 n14}
+    bandwidth 0
+}
+
+link l8 {
+    nodes {n4 n15}
+    bandwidth 0
+}
+
+link l9 {
+    nodes {n5 n16}
+    bandwidth 0
+}
+
+link l10 {
+    nodes {n13 n17}
+    bandwidth 0
+}
+
+link l11 {
+    nodes {n14 n18}
+    bandwidth 0
+}
+
+link l12 {
+    nodes {n15 n19}
+    bandwidth 0
+}
+
+link l13 {
+    nodes {n16 n20}
+    bandwidth 0
+}
+
+link l18 {
+    nodes {n10 n11}
+    bandwidth 0
+}
+
+link l21 {
+    nodes {n10 n22}
+    bandwidth 0
+}
+
+link l19 {
+    nodes {n6 n2}
+    bandwidth 0
+}
+
+link l22 {
+    nodes {n21 n3}
+    bandwidth 0
+}
+
+link l23 {
+    nodes {n22 n4}
+    bandwidth 0
+}
+
+link l24 {
+    nodes {n11 n5}
+    bandwidth 0
+}
+
+link l26 {
+    nodes {n23 n24}
+    bandwidth 0
+}
+
+link l27 {
+    nodes {n25 n24}
+    bandwidth 0
+}
+
+link l25 {
+    nodes {n10 n26}
+    bandwidth 0
+}
+
+link l28 {
+    nodes {n26 n23}
+    bandwidth 0
+}
+
+link l14 {
+    nodes {n10 n6}
+    bandwidth 0
+}
+
+link l15 {
+    nodes {n10 n21}
+    bandwidth 0
+}
+
+annotation a3 {
+    iconcoords {8 549 189 743}
+    type rectangle
+    label {AS 200}
+    labelcolor black
+    fontfamily {Arial}
+    fontsize {12}
+    color #C0C0FF
+    width 0
+    border black
+    rad 25
+    canvas c1
+}
+
+annotation a1 {
+    iconcoords {203 550 384 747}
+    type rectangle
+    label {AS 300}
+    labelcolor black
+    fontfamily {Arial}
+    fontsize {12}
+    color #C0C0FF
+    width 0
+    border black
+    rad 25
+    canvas c1
+}
+
+annotation a2 {
+    iconcoords {625 539 812 737}
+    type rectangle
+    label {AS 400}
+    labelcolor black
+    fontfamily {Arial}
+    fontsize {12}
+    color #C0C0FF
+    width 0
+    border black
+    rad 25
+    canvas c1
+}
+
+annotation a4 {
+    iconcoords {820 538 988 737}
+    type rectangle
+    label {AS 500}
+    labelcolor black
+    fontfamily {Arial}
+    fontsize {12}
+    color #C0C0FF
+    width 0
+    border black
+    rad 25
+    canvas c1
+}
+
+annotation a5 {
+    iconcoords {403 315 560 518}
+    type rectangle
+    label {AS 100}
+    labelcolor black
+    fontfamily {Arial}
+    fontsize {12}
+    color #C0C0FF
+    width 0
+    border black
+    rad 25
+    canvas c1
+}
+
+annotation a6 {
+    iconcoords {9 0 977 259}
+    type rectangle
+    label {AS 900}
+    labelcolor black
+    fontfamily {Arial}
+    fontsize {12}
+    color #C0C0FF
+    width 0
+    border black
+    rad 25
+    canvas c1
+}
+
+annotation a7 {
+    iconcoords {430.0 120.0}
+    type text
+    label {Transit Path}
+    labelcolor #ff0000
+    fontfamily {Arial}
+    fontsize {20}
+    effects {bold}
+    canvas c1
+}
+
+annotation a8 {
+    type text
+    iconcoords {511.0 104.0}
+    label {}
+    canvas c1
+}
+
+annotation a9 {
+    iconcoords {463.0 542.0 618.0 738.0}
+    type rectangle
+    label {AS 800}
+    labelcolor black
+    fontfamily {Arial}
+    fontsize {12}
+    color #C0C0FF
+    width 0
+    border black
+    rad 25
+    canvas c1
+}
+
+canvas c1 {
+    name {Canvas1}
+}
+
+option global {
+    interface_names no
+    ip_addresses yes
+    ipv6_addresses no
+    node_labels yes
+    link_labels yes
+    show_api no
+    background_images no
+    annotations yes
+    grid yes
+    traffic_start 0
+}
+
+option session {
+}
+

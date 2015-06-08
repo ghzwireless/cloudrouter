@@ -1,0 +1,10 @@
+1. Clone the cloudrouter repo onto your cloudrouter
+sudo yum install git -y
+git clone https://github.com/cloudrouter/cloudrouter.git
+
+2. Run the installer on the cloudrouter system.
+cd cloudrouter/testing/core/peering-test1
+sudo ./install-core.sh
+
+3. run the CORE test
+sudo python runtest.py
