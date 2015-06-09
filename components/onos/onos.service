@@ -5,7 +5,7 @@ After=network.service
 
 [Service]
 Type=forking
-ExecStart=/opt/onos/onos/onos-1.1.0/apache-karaf-3.0.2/bin/start
+ExecStart=/opt/onos/apache-karaf-3.0.3/bin/start
 User=onos
 Group=onos
 

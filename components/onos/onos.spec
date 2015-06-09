@@ -2,9 +2,9 @@
 
 Name: onos
 Summary: Open Network Operating System
-Version: 1.1.0
-Release: 3
-Source0: http://downloads.onosproject.org/release/onos-1.1.0.tar.gz
+Version: 1.2.0
+Release: 1
+Source0: http://downloads.onosproject.org/release/onos-1.2.0.tar.gz
 Source1: onos.service
 Group: Applications/Communications
 License: ASL 2.0
@@ -66,6 +66,8 @@ userdel %{onos_user} && groupdel %{onos_user}
 %attr(0644,-,-) %{_unitdir}/%{name}.service
 
 %changelog
+* Tue Jun 09 2015 David Jorm - 1.2.0-1
+- Upgrade to 1.2.0 (Cardinal)
 * Fri Apr 17 2015 Arun Babu Neelicattu <arun.neelicattu@gmail.com> - 1.1.0-3
 - Fix installation directory setup.
 * Fri Apr 17 2015 David Jorm - 1.1.0-2
