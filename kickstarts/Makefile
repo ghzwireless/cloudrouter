@@ -30,7 +30,8 @@ livecd:
 
 virt-img: 
 	ksflatten -c cloudrouter-$(OS)-cloud.ks -o $(TMP_KS)
-	sudo virt-install \
+	virt-install \
+        --connect qemu:///session \
 	--name=$(TMP_NAME) \
 	--ram=2048 \
 	--cpu=host --vcpus=2 \
@@ -42,8 +43,8 @@ virt-img:
 	--location=$(OS_TREE) \
 	--nographics \
 	--noreboot 
-	sudo virt-cat $(IMG_NAME) $(TMP_FILE) > $(IMG_MANIFEST)
-	sudo xz --verbose --force $(IMG_NAME)
+	virt-cat --connect qemu:///session $(IMG_NAME) $(TMP_FILE) > $(IMG_MANIFEST)
+	xz --verbose --force $(IMG_NAME)
 	
 all: livecd virt-img
 
@@ -53,5 +54,5 @@ all: livecd virt-img
 
 clean:
 	sudo rm -f *.iso *.raw *.xz $(TMP_KS) *.manifest
-	sudo virsh destroy $(TMP_NAME) || true
-	sudo virsh undefine $(TMP_NAME) || true
+	virsh --connect qemu:///session destroy $(TMP_NAME) || true
+	virsh --connect qemu:///session undefine $(TMP_NAME) || true
