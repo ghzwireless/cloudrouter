@@ -1,18 +1,40 @@
 #!/bin/bash
 
-yum install bash bridge-utils ebtables iproute libev python procps-ng net-tools tcl tk tkimg kernel-modules-extra quagga bird traceroute python-pip -y
+OSRELEASE=$(uname -r | awk -F . '{ print $(NF-1) }')
+ARCH=$(uname -i)
+CORERELEASE="1"
+COREVERSION="4.8"
+
+if type dnf > /dev/null 2>&1; then
+    dnf install bash bridge-utils ebtables iproute libev python procps-ng net-tools tcl tk tkimg kernel-modules-extra quagga bird traceroute python-pip -y
+else
+    yum install bash bridge-utils ebtables iproute libev python procps-ng net-tools tcl tk tkimg kernel-modules-extra quagga bird traceroute python-pip -y
+fi
 pip install trparse
 
-curl -o core-daemon-4.7-1.fc20.x86_64.rpm http://downloads.pf.itd.nrl.navy.mil/core/packages/4.7/core-daemon-4.7-1.fc20.x86_64.rpm
-curl -o core-gui-4.7-1.fc20.noarch.rpm http://downloads.pf.itd.nrl.navy.mil/core/packages/4.7/core-gui-4.7-1.fc20.noarch.rpm
-yum localinstall --nogpgcheck -y core-daemon-4.7-1.fc20.x86_64.rpm core-gui-4.7-1.fc20.noarch.rpm
+curl -o core-daemon-${COREVERSION}-${CORERELEASE}.${OSRELEASE}.${ARCH}.rpm http://downloads.pf.itd.nrl.navy.mil/core/packages/${COREVERSION}/core-daemon-${COREVERSION}-${CORERELEASE}.${OSRELEASE}.${ARCH}.rpm
+curl -o core-gui-${COREVERSION}-${CORERELEASE}.${OSRELEASE}.noarch.rpm http://downloads.pf.itd.nrl.navy.mil/core/packages/${COREVERSION}/core-gui-${COREVERSION}-${CORERELEASE}.${OSRELEASE}.noarch.rpm
 
-systemctl disable firewalld
-systemctl stop firewalld
-systemctl disable iptables.service
-systemctl stop iptables.service
-systemctl disable ip6tables.service
-systemctl stop ip6tables.service
+if type dnf > /dev/null 2>&1; then
+    dnf install --nogpgcheck -y core-daemon-${COREVERSION}-${CORERELEASE}.${OSRELEASE}.${ARCH}.rpm core-gui-${COREVERSION}-${CORERELEASE}.${OSRELEASE}.noarch.rpm
+else
+    yum localinstall --nogpgcheck -y core-daemon-${COREVERSION}-${CORERELEASE}.${OSRELEASE}.${ARCH}.rpm core-gui-${COREVERSION}-${CORERELEASE}.${OSRELEASE}.noarch.rpm
+fi
 
-systemctl daemon-reload
-systemctl start core-daemon.service
+if type systemctl > /dev/null 2>&1; then
+    systemctl disable firewalld
+    systemctl stop firewalld
+    systemctl disable iptables.service
+    systemctl stop iptables.service
+    systemctl disable ip6tables.service
+    systemctl stop ip6tables.service
+    systemctl daemon-reload
+    systemctl start core-daemon.service
+else
+    chkconfig iptables off
+    service iptables stop
+    chkconfig ip6tables off
+    service ip6tables stop
+    chkconfig core-daemon on
+    service core-daemon start
+fi
