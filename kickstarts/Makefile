@@ -14,6 +14,7 @@ IMG_MANIFEST:= $(ISO_PREFIX).manifest
 TMP_NAME    := cloudrouter-virt-tmp
 TMP_FILE    := /tmp/build-rpm-manifest.txt
 TMP_KS    := ksflatten.txt
+TMP_LOG   := /tmp/$(TMP_NAME).log
 
 
 # Args: BASE_DISTRO BASE_VERSION IMAGE_NAME
@@ -27,7 +28,9 @@ livecd:
 	--fslabel="$(PRODUCT)-$(VERSION)-$(OS)" \
 	--title "$(PRODUCT) $(VERSION) $(OS)" \
 	--cache=/var/cache/live
-
+#
+# virt-install takes longer. Setting max wait time to 3h.
+# serial output will be logged to a /tmp file as jenkins runs without tty.
 virt-img: 
 	ksflatten -c cloudrouter-$(OS)-cloud.ks -o $(TMP_KS)
 	virt-install \
@@ -39,10 +42,11 @@ virt-img:
 	--initrd-inject=$(TMP_KS) \
 	--extra-args="inst.ks=file:/$(TMP_KS) console=tty0 console=ttyS0,115200" \
 	--disk $(IMG_NAME),size=6,format=raw \
-	--serial pty \
 	--location=$(OS_TREE) \
 	--nographics \
-	--noreboot 
+	--noreboot \
+	--wait 180 \
+	--serial file,path=$(TMP_LOG)
 	virt-cat --connect qemu:///session $(IMG_NAME) $(TMP_FILE) > $(IMG_MANIFEST)
 	xz --verbose --force $(IMG_NAME)
 	
