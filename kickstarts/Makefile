@@ -6,7 +6,8 @@ OS          := fedora
 OS_VERSION  := 20
 OS_TREE     := http://dl.fedoraproject.org/pub/fedora/linux/releases/20/Fedora/x86_64/os/
 
-ISO_PREFIX	:= $(PRODUCT)-$(VERSION)-$(OS)
+PROFILE   := minimal
+ISO_PREFIX	:= $(PRODUCT)-$(VERSION)-$(OS)-$(PROFILE)
 ISO_NAME	:= $(ISO_PREFIX).iso
 
 IMG_NAME	:= $(ISO_PREFIX).raw
@@ -15,7 +16,6 @@ TMP_NAME    := cloudrouter-virt-tmp
 TMP_FILE    := /tmp/build-rpm-manifest.txt
 TMP_KS    := ksflatten.txt
 TMP_LOG   := /tmp/$(TMP_NAME).log
-PROFILE   := minimal
 
 
 # Args: BASE_DISTRO BASE_VERSION IMAGE_NAME
