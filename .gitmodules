@@ -10,3 +10,6 @@
 [submodule "components/dpdk"]
 	path = components/dpdk
 	url = https://github.com/cloudrouter/cloudrouter-component-dpdk.git
+[submodule "components/opendaylight-lithium"]
+	path = components/opendaylight-lithium
+	url = https://github.com/cloudrouter/cloudrouter-component-odl-lithium.git
