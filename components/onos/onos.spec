@@ -3,7 +3,7 @@
 Name: onos
 Summary: Open Network Operating System
 Version: 1.2.1
-Release: 1
+Release: 1%{?dist}
 Source0: http://downloads.onosproject.org/release/onos-%{version}.tar.gz
 Source1: onos.service
 Group: Applications/Communications
@@ -66,6 +66,8 @@ userdel %{onos_user} && groupdel %{onos_user}
 %attr(0644,-,-) %{_unitdir}/%{name}.service
 
 %changelog
+* Thu Jul 02 2015 John Siegrist <jsiegrist@iix.net> - 1.2.1-1
+- Added dist macro to Release
 * Wed Jul 01 2015 Jay Turner <jkt@iix.net> - 1.2.1-1
 - Update to 1.2.1 (Cardinal)
 * Tue Jun 09 2015 David Jorm - 1.2.0-1

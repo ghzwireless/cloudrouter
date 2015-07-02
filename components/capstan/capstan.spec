@@ -5,7 +5,7 @@
 Summary:	Capstan, a tool for building and running your application on OSv.
 Name:		capstan
 Version:	0.1.8
-Release:	1
+Release:	1%{?dist}
 License:	BSD
 Group:		Development/Tools/Building
 Source:		https://github.com/cloudius-systems/%{name}/archive/v%{version}.tar.gz
@@ -44,5 +44,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %config %attr(755,root,root) /usr/bin/%{name}
 
 %changelog
+* Thu Jul 02 2015 John Siegrist <jsiegrist@iix.net> - 0.1.8-1
+- Added dist macro to Release
 * Sat Apr 13 2015 Arun Babu Neelicattu  <arun.neelicattu@gmail.com> - 0.1.8-1
 - initial packaging

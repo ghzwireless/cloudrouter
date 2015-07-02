@@ -1,6 +1,6 @@
 Name: mininet
 Version: 2.2.0
-Release: 1
+Release: 1%{?dist}
 Summary: Internet Virtualization
 
 License:  BSD
@@ -40,6 +40,8 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man*/*
 
 %changelog
+* Thu Jul 02 2015 John Siegrist <jsiegrist@iix.net> - 2.2.0-1
+- Added dist macro to Release
 * Mon Mar 09 2015 Arun Babu Neelicattu <abn@iix.net> - 2.2.0-1
 - Initial mininet release for CloudRouter.
 
