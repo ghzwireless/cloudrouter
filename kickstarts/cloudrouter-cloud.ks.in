@@ -1,3 +1,6 @@
+# configure services to run
+services --enabled="cloud-init,network,sshd,rsyslog"
+
 %packages
 cloud-init
 firewalld
