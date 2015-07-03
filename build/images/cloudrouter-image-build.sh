@@ -6,7 +6,7 @@ ARCH=${ARCH-x86_64}
 PROFILE=$(echo ${PROFILE-minimal}  | tr '[:upper:]' '[:lower:]')
 SCRIPT_HOME=${SCRIPT_HOME-$(dirname "${BASH_SOURCE[0]}")}
 BUILD_DIR=${BUILD_DIR-$(pwd)}
-RELEASE_RPM=${RELEASE_RPM-https://cloudrouter.org/repo/1/x86_64/cloudrouter-release-${OS}-latest.noarch.rpm}
+RELEASE_RPM=${RELEASE_RPM-https://cloudrouter.org/repo/fedora/${VERSION}/x86_64/cloudrouter-release-${OS}-latest.noarch.rpm}
 
 VIRT_BUILDER_CMD=${VIRT_BUILDER_CMD-virt-builder}
 BUILD_EXTRA_ARGS="${BUILD_EXTRA_ARGS}"

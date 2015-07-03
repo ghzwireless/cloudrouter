@@ -5,9 +5,11 @@ dnsmasq
 dnsmasq-utils
 docker-io
 dpdk
+fastnetmon
 firewalld
 ipsec-tools
 iputils
+mininet
 mtr
 net-snmp-utils
 onos
