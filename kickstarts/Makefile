@@ -1,10 +1,10 @@
 # Copyright 2015 CloudRouter Project Authors.
 
 PRODUCT     := CloudRouter
-VERSION     := 1.0
+VERSION     := 2.0
 OS          := fedora
-OS_VERSION  := 20
-OS_TREE     := http://dl.fedoraproject.org/pub/fedora/linux/releases/20/Fedora/x86_64/os/
+OS_VERSION  := 22
+OS_TREE     := http://dl.fedoraproject.org/pub/fedora/linux/releases/22/Server/x86_64/os/
 
 PROFILE   := minimal
 ISO_PREFIX	:= $(PRODUCT)-$(VERSION)-$(OS)-$(PROFILE)
