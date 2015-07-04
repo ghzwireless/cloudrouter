@@ -1,3 +1,4 @@
+repo --name=cloudrouter --baseurl=https://repo.cloudrouter.org/centos/$releasever/$basearch/
 %include cloudrouter-base.ks
 
 # including epel for cloud-init

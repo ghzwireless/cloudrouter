@@ -43,9 +43,6 @@ services --enabled=network,sshd,rsyslog
 # Halt the system once configuration has finished.
 poweroff
 
-
-%include cloudrouter-repo.ks
-
 %packages
 @core
 
