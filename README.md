@@ -1,4 +1,4 @@
-# CloudRouter
+# CloudRouter [![Join the chat at https://gitter.im/cloudrouter/cloudrouter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/cloudrouter/cloudrouter?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ![CloudRouter Logo](http://cloudrouter.org/wp-content/uploads/2015/01/CloudRouter-Logo-Regular.png)
 
