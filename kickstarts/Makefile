@@ -15,7 +15,8 @@ IMG_MANIFEST:= $(ISO_PREFIX).manifest
 TMP_NAME    := cloudrouter-virt-tmp
 TMP_FILE    := /tmp/build-rpm-manifest.txt
 TMP_KS    := ksflatten.txt
-TMP_LOG   := /tmp/$(TMP_NAME).log
+LOG_DIR   := $(shell mktemp -d)
+TMP_LOG   := $(LOG_DIR)/$(TMP_NAME).log
 
 
 # Args: BASE_DISTRO BASE_VERSION IMAGE_NAME
