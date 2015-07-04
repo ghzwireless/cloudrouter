@@ -30,8 +30,9 @@ livecd:
 	--fslabel="$(PRODUCT)-$(VERSION)-$(OS)" \
 	--title "$(PRODUCT) $(VERSION) $(OS)" \
 	--cache=/var/cache/live
-#
-# virt-install takes longer. Setting max wait time to 4h.
+
+# virt-install takes longer when nested KVM is unsupported.
+# Setting max wait time to 4h.
 # serial output will be logged to a /tmp file as jenkins runs without tty.
 virt-img: 
 	ksflatten -c cloudrouter-$(OS)-cloud-$(PROFILE).ks -o $(TMP_KS)
