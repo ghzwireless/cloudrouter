@@ -48,7 +48,7 @@ virt-img:
 	--location=$(OS_TREE) \
 	--nographics \
 	--noreboot \
-	--wait 240 \
+	--wait 300 \
 	--serial file,path=$(TMP_LOG)
 	virt-cat --connect qemu:///session $(IMG_NAME) $(TMP_FILE) > $(IMG_MANIFEST)
 	xz --verbose --force $(IMG_NAME)
