@@ -3,7 +3,7 @@
 Name: onos
 Summary: Open Network Operating System
 Version: 1.2.1
-Release: 1%{?dist}
+Release: 2%{?dist}
 Source0: http://downloads.onosproject.org/release/onos-%{version}.tar.gz
 Source1: onos.service
 Group: Applications/Communications
@@ -57,8 +57,8 @@ rm -rf %
 # remove installed files
 rm -rf %{onos_home}
 
-# remove onos user/group
-userdel %{onos_user} && groupdel %{onos_user}
+# remove onos user/group; removing the user also removes the group.
+userdel %{onos_user}
 
 %files
 # ONOS uses systemd to run as user:group onos:onos
@@ -66,6 +66,8 @@ userdel %{onos_user} && groupdel %{onos_user}
 %attr(0644,-,-) %{_unitdir}/%{name}.service
 
 %changelog
+* Tue Jul 06 2015 John Siegrist <jsiegrist@iix.net> - 1.2.1-2
+- Modified %postun to remove explicit groupdel call.
 * Thu Jul 02 2015 John Siegrist <jsiegrist@iix.net> - 1.2.1-1
 - Added dist macro to Release
 * Wed Jul 01 2015 Jay Turner <jkt@iix.net> - 1.2.1-1
