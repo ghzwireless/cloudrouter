@@ -41,6 +41,8 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man*/*
 
 %changelog
+* Mon Jul 06 2015 Jay Turner <jkt@iix.net> - 2.2.1-1
+- Upgrade to 2.2.1
 * Mon Jul 06 2015 Jay Turner <jkt@iix.net> - 2.2.0-2
 - Copy in the examples/ directory
 * Thu Jul 02 2015 John Siegrist <jsiegrist@iix.net> - 2.2.0-1
