@@ -14,7 +14,7 @@ iputils
 mtr
 net-snmp-utils
 onos
-opendaylight
+opendaylight-lithium
 openvpn
 quagga
 radvd
