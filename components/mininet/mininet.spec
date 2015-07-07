@@ -1,11 +1,11 @@
 Name: mininet
 Version: 2.2.1
-Release: 1%{?dist}
+Release: 2%{?dist}
 Summary: Internet Virtualization
 
 License:  BSD
 URL: http://mininet.github.com/
-Source0: https://github.com/mininet/mininet/archive/mininet-%{version}.tar.gz
+Source0: https://github.com/mininet/mininet/archive/%{version}.tar.gz
 Patch0: 0001-Modify-Makefile-to-work-with-rpmbuild.patch
 
 BuildRequires: python-networkx, python-devel, pyflakes, pylint, python-pep8, help2man
@@ -41,6 +41,8 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man*/*
 
 %changelog
+* Tue Jul 07 2015 John Siegrist <john@complects.com> - 2.2.1-2
+- Updated source URL.
 * Mon Jul 06 2015 Jay Turner <jkt@iix.net> - 2.2.1-1
 - Upgrade to 2.2.1
 * Mon Jul 06 2015 Jay Turner <jkt@iix.net> - 2.2.0-2
@@ -49,4 +51,3 @@ rm -rf $RPM_BUILD_ROOT
 - Added dist macro to Release
 * Mon Mar 09 2015 Arun Babu Neelicattu <abn@iix.net> - 2.2.0-1
 - Initial mininet release for CloudRouter.
-
