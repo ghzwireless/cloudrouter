@@ -66,7 +66,7 @@ userdel %{onos_user}
 %attr(0644,-,-) %{_unitdir}/%{name}.service
 
 %changelog
-* Tue Jul 06 2015 John Siegrist <jsiegrist@iix.net> - 1.2.1-2
+* Tue Jul 07 2015 John Siegrist <jsiegrist@iix.net> - 1.2.1-2
 - Modified %postun to remove explicit groupdel call.
 * Thu Jul 02 2015 John Siegrist <jsiegrist@iix.net> - 1.2.1-1
 - Added dist macro to Release
