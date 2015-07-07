@@ -2,7 +2,7 @@
 BUILD_SERVER_PROTO=https
 BUILD_SERVER_HOST=104.197.15.26
 BUILD_SERVER_PORT=8443
-BUILD_SERVER_API_PATH=/job/cloudrouter-build-rpms/lastSuccessfulBuild/api/json
+BUILD_SERVER_API_PATH=/job/build-rpms-f22/lastSuccessfulBuild/api/json
 BUILD_SERVER_URL=${BUILD_SERVER_PROTO}://${BUILD_SERVER_HOST}:${BUILD_SERVER_PORT}${BUILD_SERVER_API_PATH}
 CURL_CMD="curl --insecure -s"
 CR_SIGNING_DIR=~/.crsigning
