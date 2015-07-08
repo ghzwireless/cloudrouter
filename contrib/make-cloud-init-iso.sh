@@ -3,7 +3,7 @@
 #
 #   make-cloud-init-iso.sh
 #   Description: Create a cloud-init iso for cloudrouter
-#   Version: 1.1
+#   Version: 1.2
 #
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
@@ -25,7 +25,7 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 if [ ! -n "${HOST}" ]; then
-    HOST="localhost"
+    HOST="cloudrouter"
 fi
 
 if [ ! -n "${WORKING_DIR}" ]; then
@@ -37,7 +37,7 @@ if [ ! -n "${PRIKEY}" ] && [ ! -n "${PUBKEY}" ]; then
     PUBKEY="${PRIKEY}.pub"
 fi
 
-for cmd in genisoimage ssh-keygen; do
+for cmd in genisoimage ssh-keygen makepasswd; do
     type $cmd > /dev/null 2>&1 \
         || { echo >&2 "[ERROR] $cmd command not found."; exit 1; }
 done
@@ -68,20 +68,26 @@ function make-cloud-init-iso() {
 
     cat > ${WORKING_DIR}/user-data << EOF
 #cloud-config
+users:
+  - name: cloudrouter
+    gecos: CloudRouter
+    sudo: ["ALL=(ALL) NOPASSWD:ALL"]
+    groups: wheel,adm,systemd-journal
 EOF
 
 if [ "$SKIPUSERPASS" -eq "0" ]; then
+    password_hash=$(makepasswd -e sha512 -p ${USERPASS}|awk -F ' ' '{print $2}') 
     cat >> ${WORKING_DIR}/user-data << EOF
-password: ${USERPASS}
-ssh_pwauth: True
-chpasswd: { expire: False }
+    lock-passwd: False
+    passwd: ${password_hash}
+    ssh_pwauth: True
 EOF
 fi
 
 if [ "$SKIPSSHKEY" -eq "0" ]; then
     cat >> ${WORKING_DIR}/user-data << EOF
-ssh_authorized_keys:
-  - $(cat ${PUBKEY})
+    ssh_authorized_keys:
+      - $(cat ${PUBKEY})
 EOF
 fi
     cat > ${WORKING_DIR}/meta-data << EOF
