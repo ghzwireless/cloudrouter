@@ -7,7 +7,7 @@ OS_VERSION  := 22
 OS_TREE     := http://dl.fedoraproject.org/pub/fedora/linux/releases/22/Server/x86_64/os/
 
 PROFILE   := minimal
-ISO_PREFIX	:= $(PRODUCT)-$(VERSION)-$(OS)-$(PROFILE)
+ISO_PREFIX	:= $(PRODUCT)-$(VERSION)-BETA-$(OS)-$(PROFILE)
 ISO_NAME	:= $(ISO_PREFIX).iso
 
 IMG_NAME	:= $(ISO_PREFIX).raw
@@ -27,8 +27,8 @@ livecd:
 	--product="$(PRODUCT) $(VERSION)" \
 	--config=$(TMP_KS) \
 	--releasever="$(OS_VERSION)" \
-	--fslabel="$(PRODUCT)-$(VERSION)-$(OS)" \
-	--title "$(PRODUCT) $(VERSION) $(OS)" \
+	--fslabel="$(PRODUCT)-$(VERSION)-BETA-$(OS)" \
+	--title "$(PRODUCT) $(VERSION) BETA $(OS)" \
 	--cache=/var/cache/live
 
 # virt-install takes longer when nested KVM is unsupported.
