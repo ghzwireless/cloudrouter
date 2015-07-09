@@ -64,7 +64,7 @@ for COMPONENT in "${COMPONENTS[@]}"; do
             -exec rpmbuild "${RPM_BUILD_OPTS[@]}" --clean {} \; | tee ${LOG_FILE}
 
         # lets pull out the rpms created
-        find ${RPM_BUILD_RPMS} -name "${COMPONENT}*.rpm" \
+        find ${RPM_BUILD_RPMS} -name "*.rpm" \
             -exec mv {} . \;
         find ${RPM_BUILD_SRPMS} -name "${COMPONENT}*.rpm" \
             -exec mv {} . \;
