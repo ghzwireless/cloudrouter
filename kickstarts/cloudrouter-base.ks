@@ -49,7 +49,17 @@ poweroff
 # explicit packages
 kernel
 firewalld
+# for ssh banner
+figlet
+boxes
 
 # we do not need plymouth
 -plymouth
+%end
+
+
+%post
+# Set SSH banner 
+echo cloudrouter | /usr/bin/figlet | /usr/bin/boxes -d shell > /etc/ssh/sshd_banner
+/bin/sed -i "s|#Banner none|Banner /etc/ssh/sshd_banner|" /etc/ssh/sshd_config
 %end
