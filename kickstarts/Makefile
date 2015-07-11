@@ -52,14 +52,40 @@ virt-img:
 	--serial file,path=$(TMP_LOG)
 	virt-cat --connect qemu:///session $(IMG_NAME) $(TMP_FILE) > $(IMG_MANIFEST)
 	xz --verbose --force $(IMG_NAME)
+
+# virt-install takes longer when done on nested KVM
+# setting max wait time to 4h
+# the output .tar.xz can be used directly in a Dockerfile or used with docker import cmd
+docker-img:
+	ksflatten -c cloudrouter-$(OS)-docker.ks -o $(TMP_KS)
+	virt-install \
+        --connect qemu:///session \
+	--name=$(TMP_NAME) \
+	--ram=2048 \
+	--cpu=host --vcpus=2 \
+	--os-type=linux \
+	--initrd-inject=$(TMP_KS) \
+	--extra-args="inst.ks=file:/$(TMP_KS) console=tty0 console=ttyS0,115200" \
+	--disk $(IMG_NAME),size=6,format=raw \
+	--location=$(OS_TREE) \
+	--nographics \
+	--noreboot \
+	--wait 300 \
+	--serial file,path=$(TMP_LOG)
+	virt-cat --connect qemu:///session $(IMG_NAME) $(TMP_FILE) > $(IMG_MANIFEST)
+	virt-tar-out -a $(IMG_NAME) / - | xz --best > $(ISO_PREFIX)-docker.tar.xz
+	echo "From scratch" > Dockerfile
+	echo "MAINTAINER Jay Turner<jturner@iix.net>" >> Dockerfile
+	echo "ADD $(ISO_PREFIX)-docker.tar.xz /" >> Dockerfile
+
 	
-all: livecd virt-img
+all: livecd virt-img docker-img
 
 # Phony targets for cleanup and similar uses
 #
 # .PHONY: clean
 
 clean:
-	sudo rm -f *.iso *.raw *.xz $(TMP_KS) *.manifest
+	sudo rm -f *.iso *.raw *.xz $(TMP_KS) *.manifest Dockerfile
 	virsh --connect qemu:///session destroy $(TMP_NAME) || true
 	virsh --connect qemu:///session undefine $(TMP_NAME) || true
