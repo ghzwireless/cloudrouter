@@ -6,16 +6,14 @@
 
 3. convert the cloudrouter image to qcow2 format.
 
-        $ qemu-img convert -f raw -O qcow2 cloudrouter-fedora-full.raw cloudrouter-1-64.qcow2
+        $ qemu-img convert -f raw -O qcow2 cloudrouter-fedora-minimal.raw cloudrouter-2-64.qcow2
 
-4. boot the image with virt-install or virt-manager and attach the virttest-cloud-init.iso image to the cdrom. This will configure the cloudrouter user and set both root and the cloudrouter passwords to the default password in virt-test '123456'.  The vm will auto shutdown when it is done configuring the image.
+4. Create a 7zip image that is the base image for tests.  Make sure the cloudrouter-1-64.qcow2 file is in the base of the 7zip archive.
 
-5. Create a 7zip image that is the base image for tests.  Make sure the cloudrouter-1-64.qcow2 file is in the base of the 7zip archive.
+        $ 7za a virt-test/shared/data/images/cloudrouter-2-64.qcow2.7z cloudrouter-2-64.qcow2
 
-        $ 7za a virt-test/shared/data/images/cloudrouter-1-64.qcow2.7z cloudrouter-1-64.qcow2
+5. edit test-providers.d/cloudrouter.ini and set the full filesystem path to the cloudrouter-tests folder in the uri line.
 
-6. edit test-providers.d/cloudrouter.ini and set the full filesystem path to the cloudrouter-tests folder in the uri line.
+6. run the cloudrouter tests with one or more tests.
 
-7. run the cloudrouter tests with one or more tests.
-
-        $ sudo ./run -t qemu -g Linux.Cloudrouter.1.x86_64 --tests "cloudrouter.baseos cloudrouter.basebird cloudrouter.basequagga cloudrouter.baseonos cloudrouter.baseopendaylight"
+        $ sudo ./run -t qemu -g Linux.Cloudrouter.2.x86_64 --tests "cloudrouter.baseos cloudrouter.basebird cloudrouter.basequagga cloudrouter.baseonos cloudrouter.baseopendaylight cloudrouter.basefastnetmon cloudrouter.basemininet cloudrouter.basecapstan"

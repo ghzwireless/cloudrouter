@@ -21,7 +21,7 @@ def run(test, params, env):
     vm.verify_alive()
     timeout = float(params.get("login_timeout", 240))
     session = vm.wait_for_login(timeout=timeout)
-    cloudrouter = session.cmd("rpm -q cloudrouter-release")
+    cloudrouter = session.cmd("rpm -qa|grep cloudrouter-release")
     logging.info("Cloudrouter release file version: %s", cloudrouter)
     cloudrouter = session.cmd("grep cloudrouter /etc/passwd")
     logging.info("Cloudrouter user is in passwd: %s", cloudrouter)
