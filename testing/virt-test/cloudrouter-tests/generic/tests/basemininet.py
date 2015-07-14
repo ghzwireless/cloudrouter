@@ -27,7 +27,7 @@ def run(test, params, env):
     logging.info("Mininet version: %s", cloudrouter)
     cloudrouter = session.cmd("mn -h")
     logging.info("Checking Mininet help cmd", cloudrouter)
-    cloudrouter = session.cmd("sudo rpm -e mininet") 
+    cloudrouter = session.cmd("sudo dnf remove -y mininet") 
     logging.info("Removing the Mininet package: %s", cloudrouter)
     cloudrouter = session.cmd("rpm -q mininet",ok_status=[1])
     logging.info("Mininet rpm is removed: %s", cloudrouter)

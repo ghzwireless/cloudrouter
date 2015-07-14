@@ -44,7 +44,7 @@ def run(test, params, env):
     logging.info("Stopping zebra service: %s", cloudrouter)
     cloudrouter = session.cmd("pidof zebra",ok_status=[1])
     logging.info("zebra is not running: %s", cloudrouter)
-    cloudrouter = session.cmd("sudo rpm -e quagga")
+    cloudrouter = session.cmd("sudo dnf remove -y quagga")
     logging.info("Removing the QUAGGA package: %s", cloudrouter)
     cloudrouter = session.cmd("rpm -q quagga",ok_status=[1])
     logging.info("QUAGGA rpm is removed: %s", cloudrouter)

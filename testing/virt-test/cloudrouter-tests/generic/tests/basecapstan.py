@@ -27,7 +27,7 @@ def run(test, params, env):
     logging.info("Capstan version: %s", cloudrouter)
     cloudrouter = session.cmd("capstan -h")
     logging.info("Checking Capstan help cmd", cloudrouter)
-    cloudrouter = session.cmd("sudo rpm -e capstan") 
+    cloudrouter = session.cmd("sudo dnf remove -y capstan") 
     logging.info("Removing the Capstan package: %s", cloudrouter)
     cloudrouter = session.cmd("rpm -q capstan",ok_status=[1])
     logging.info("Capstan rpm is removed: %s", cloudrouter)

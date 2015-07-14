@@ -47,7 +47,7 @@ def run(test, params, env):
     logging.info("Stopping BIRD service: %s", cloudrouter)
     cloudrouter = session.cmd("pidof bird",ok_status=[1])
     logging.info("BIRD is not running: %s", cloudrouter)
-    cloudrouter = session.cmd("sudo rpm -e bird")
+    cloudrouter = session.cmd("sudo dnf remove -y bird")
     logging.info("Removing the BIRD package: %s", cloudrouter)
     cloudrouter = session.cmd("rpm -q bird",ok_status=[1])
     logging.info("BIRD rpm is removed: %s", cloudrouter)

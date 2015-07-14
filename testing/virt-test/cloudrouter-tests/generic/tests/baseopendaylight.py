@@ -42,7 +42,7 @@ def run(test, params, env):
     logging.info("Stopping opendaylight-lithium service: %s", cloudrouter)
     cloudrouter = session.cmd("pidof java",ok_status=[1])
     logging.info("opendaylight is not running: %s", cloudrouter)
-    cloudrouter = session.cmd("sudo rpm -e opendaylight-lithium")
+    cloudrouter = session.cmd("sudo dnf remove -y opendaylight-lithium")
     logging.info("Removing the OpenDaylight package: %s", cloudrouter)
     cloudrouter = session.cmd("rpm -q opendaylight-lithium",ok_status=[1])
     logging.info("OpenDaylight rpm is removed: %s", cloudrouter)

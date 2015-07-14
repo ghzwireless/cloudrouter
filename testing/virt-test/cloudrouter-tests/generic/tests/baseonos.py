@@ -42,7 +42,7 @@ def run(test, params, env):
     logging.info("Stopping onos service: %s", cloudrouter)
     cloudrouter = session.cmd("pidof java",ok_status=[1])
     logging.info("onos is not running: %s", cloudrouter)
-    cloudrouter = session.cmd("sudo rpm -e onos")
+    cloudrouter = session.cmd("sudo dnf remove -y onos")
     logging.info("Removing the ONOS package: %s", cloudrouter)
     cloudrouter = session.cmd("rpm -q onos",ok_status=[1])
     logging.info("ONOS rpm is removed: %s", cloudrouter)

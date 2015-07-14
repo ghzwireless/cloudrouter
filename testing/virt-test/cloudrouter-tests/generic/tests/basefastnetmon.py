@@ -44,7 +44,7 @@ def run(test, params, env):
     logging.info("Stopping FastNetMon service: %s", cloudrouter)
     cloudrouter = session.cmd("pidof fastnetmon",ok_status=[1])
     logging.info("FastNetMon is not running: %s", cloudrouter)
-    cloudrouter = session.cmd("sudo rpm -e fastnetmon")
+    cloudrouter = session.cmd("sudo dnf remove -y fastnetmon")
     logging.info("Removing the FastNetMon package: %s", cloudrouter)
     cloudrouter = session.cmd("rpm -q fastnetmon",ok_status=[1])
     logging.info("FastNetMon rpm is removed: %s", cloudrouter)
