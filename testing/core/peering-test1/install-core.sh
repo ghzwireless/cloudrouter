@@ -6,9 +6,9 @@ CORERELEASE="1"
 COREVERSION="4.8"
 
 if type dnf > /dev/null 2>&1; then
-    dnf install bash bridge-utils ebtables iproute libev python procps-ng net-tools tcl tk tkimg kernel-modules-extra quagga bird traceroute python-pip -y
+    dnf install bash bridge-utils ebtables iproute libev python procps-ng net-tools tcl tk tkimg kernel-modules-extra quagga bird traceroute python-pip traceroute -y
 else
-    yum install bash bridge-utils ebtables iproute libev python procps-ng net-tools tcl tk tkimg kernel-modules-extra quagga bird traceroute python-pip -y
+    yum install bash bridge-utils ebtables iproute libev python procps-ng net-tools tcl tk tkimg kernel-modules-extra quagga bird traceroute python-pip traceroute -y
 fi
 pip install trparse
 
