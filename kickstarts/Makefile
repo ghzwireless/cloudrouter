@@ -6,7 +6,7 @@ OS          := fedora
 OS_VERSION  := 22
 OS_TREE     := http://dl.fedoraproject.org/pub/fedora/linux/releases/22/Server/x86_64/os/
 
-PROFILE   := minimal
+PROFILE     := minimal
 ISO_PREFIX	:= $(PRODUCT)-$(VERSION)-BETA-$(OS)-$(PROFILE)
 ISO_NAME	:= $(ISO_PREFIX).iso
 
@@ -14,9 +14,13 @@ IMG_NAME	:= $(ISO_PREFIX).raw
 IMG_MANIFEST:= $(ISO_PREFIX).manifest
 TMP_NAME    := cloudrouter-virt-tmp
 TMP_FILE    := /tmp/build-rpm-manifest.txt
-TMP_KS    := ksflatten.txt
-LOG_DIR   := $(shell mktemp -d)
-TMP_LOG   := $(LOG_DIR)/$(TMP_NAME).log
+TMP_KS      := ksflatten.txt
+LOG_DIR     := $(shell mktemp -d)
+TMP_LOG     := $(LOG_DIR)/$(TMP_NAME).log
+MOCK_ENV    := cloudrouter-mock
+MOCK_CFG    := cloudrouter-mock.cfg
+MOCK_ARCH   := x86_64
+MOCK_KS     := cloudrouter-fedora-DVD.ks
 
 
 # Args: BASE_DISTRO BASE_VERSION IMAGE_NAME
@@ -78,14 +82,37 @@ docker-img:
 	echo "MAINTAINER Jay Turner<jturner@iix.net>" >> Dockerfile
 	echo "ADD $(ISO_PREFIX)-docker.tar.xz /" >> Dockerfile
 
-	
-all: livecd virt-img docker-img
+# isobuild target to generate DVD iso for CloudRouter
+# this is based on mock and pungi
+# Refer: http://fedoraproject.org/wiki/How_to_create_a_Fedora_install_ISO_for_testing
+
+isobuild:
+	$(eval VERSION=`echo $(VERSION) | cut -f1 -d"."`)
+	sudo cp $(MOCK_CFG) /etc/mock/
+	sudo mock -r $(MOCK_ENV) clean
+	sudo mock -r $(MOCK_ENV) init
+	sudo mock -r $(MOCK_ENV) --install pungi
+	sudo mock -r $(MOCK_ENV) --install sed
+	sudo mock -r $(MOCK_ENV) --copyin $(MOCK_KS) /
+	sudo mock -r $(MOCK_ENV) --chroot "pungi --force \
+	-G -C -B --isfinal --nosource --nodebuginfo \
+	--name $(PRODUCT) --ver $(VERSION) -c /$(MOCK_KS)"
+	sudo mock -r $(MOCK_ENV) --chroot "sed -i \
+	'/initrd.img/s/$$/ inst.text/' /$(VERSION)/$(MOCK_ARCH)/os/isolinux/isolinux.cfg"
+	sudo mock -r $(MOCK_ENV) --chroot "pungi --force \
+	-I --isfinal --nosource --nodebuginfo \
+	--name $(PRODUCT) --ver $(VERSION) -c /$(MOCK_KS)"
+	sudo mock -r $(MOCK_ENV) --copyout /$(VERSION)/$(MOCK_ARCH)/iso/*DVD*.iso .
+
+
+
+all: livecd virt-img docker-img isobuild
 
 # Phony targets for cleanup and similar uses
 #
 # .PHONY: clean
 
 clean:
-	sudo rm -f *.iso *.raw *.xz $(TMP_KS) *.manifest Dockerfile
+	sudo rm -f *.log *.iso *.raw *.xz $(TMP_KS) *.manifest Dockerfile
 	virsh --connect qemu:///session destroy $(TMP_NAME) || true
 	virsh --connect qemu:///session undefine $(TMP_NAME) || true
