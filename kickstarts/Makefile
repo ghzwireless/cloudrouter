@@ -20,7 +20,7 @@ TMP_LOG     := $(LOG_DIR)/$(TMP_NAME).log
 MOCK_ENV    := cloudrouter-mock
 MOCK_CFG    := cloudrouter-mock.cfg
 MOCK_ARCH   := x86_64
-MOCK_KS     := cloudrouter-fedora-DVD.ks
+MOCK_KS     := cloudrouter-fedora-dvd-base.ks
 
 
 # Args: BASE_DISTRO BASE_VERSION IMAGE_NAME
@@ -88,6 +88,7 @@ docker-img:
 
 isobuild:
 	$(eval VERSION=`echo $(VERSION) | cut -f1 -d"."`)
+	ksflatten -c cloudrouter-fedora-DVD.ks -o ks.cfg
 	sudo cp $(MOCK_CFG) /etc/mock/
 	sudo mock -r $(MOCK_ENV) clean
 	sudo mock -r $(MOCK_ENV) init
@@ -95,13 +96,16 @@ isobuild:
 	sudo mock -r $(MOCK_ENV) --install sed
 	sudo mock -r $(MOCK_ENV) --copyin $(MOCK_KS) /
 	sudo mock -r $(MOCK_ENV) --chroot "pungi --force \
-	-G -C -B --isfinal --nosource --nodebuginfo \
-	--name $(PRODUCT) --ver $(VERSION) -c /$(MOCK_KS)"
+		-G -C -B --isfinal --nosource --nodebuginfo \
+		--name $(PRODUCT) --ver $(VERSION) -c /$(MOCK_KS)"
+	sudo mock -r $(MOCK_ENV) --copyin \
+		ks.cfg /$(VERSION)/$(MOCK_ARCH)/os/
 	sudo mock -r $(MOCK_ENV) --chroot "sed -i \
-	'/initrd.img/s/$$/ inst.text/' /$(VERSION)/$(MOCK_ARCH)/os/isolinux/isolinux.cfg"
+		'/initrd.img/s/$$/ ks=cdrom:\/ks.cfg /' \
+		/$(VERSION)/$(MOCK_ARCH)/os/isolinux/isolinux.cfg"
 	sudo mock -r $(MOCK_ENV) --chroot "pungi --force \
-	-I --isfinal --nosource --nodebuginfo \
-	--name $(PRODUCT) --ver $(VERSION) -c /$(MOCK_KS)"
+		-I --isfinal --nosource --nodebuginfo \
+		--name $(PRODUCT) --ver $(VERSION) -c /$(MOCK_KS)"
 	sudo mock -r $(MOCK_ENV) --copyout /$(VERSION)/$(MOCK_ARCH)/iso/*DVD*.iso .
 
 

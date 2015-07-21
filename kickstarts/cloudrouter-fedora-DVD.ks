@@ -1,16 +1,103 @@
-repo --name=fedora --mirrorlist=http://mirrors.fedoraproject.org/mirrorlist?repo=fedora-22&arch=$basearch
-repo --name=cloudrouter --baseurl=https://repo.cloudrouter.org/repo/fedora/2/x86_64/
+%include cloudrouter-fedora-repo.ks
+%include cloudrouter-repo.ks
 
-%packages 
+# cloudrouter-base.ks
+# base kick start file for all cloudrouter kickstart files
+install
+text
+lang en_US.UTF-8
+keyboard us
+timezone US/Eastern
 
-kernel*
-@system-tools
+# setup authentication for the system
+auth --useshadow --enablemd5
+
+# enable SELinux because that is the way we roll
+selinux --enforcing
+
+# Intentionally leaving out setting rootpw
+# we will prompt for the user to set this by default.
+#rootpw --lock --iscrypted locked
+
+# disable user by default override when required
+user --name=none
+
+# enable firewall and default services
+firewall --enabled --service=mdns,ssh
+
+# bootloader installation and configuration with kernel parameters
+bootloader --location=mbr 
+
+# clear and initialize any invalid partition tables found on disk
+zerombr
+
+# clear all partitions
+clearpart --all --initlabel
+
+# autopart
+autopart
+
+# configure and activate network (link) at boot time
+network --bootproto=dhcp --device=link --activate --onboot=on
+
+# configure services to run at default runlevel
+services --enabled=network,sshd,rsyslog
+
+#reboot
+reboot
+
+%packages
 @core
-grub2*
 
-#include cloudrouter packages
-cloudrouter-release-fedora
-cloudrouter-release-fedora-notes
+# explicit packages
+kernel
+firewalld
+# for ssh banner
+figlet
+boxes
+
+# we do not need plymouth
+-plymouth
+
+# cloudrouter full package set
+# Packaged Upstream
+bind
+dhcp
+dnsmasq
+dnsmasq-utils
+docker-io
+firewalld
+ipsec-tools
+iputils
+mtr
+net-snmp-utils
+radvd
+strongswan
+tcpdump
+traceroute
+xl2tpd
+
+# Packaged by CloudRouter
+bgpstream
+bird
+capstan
+dpdk
+fastnetmon
+libfixbuf
+libtrace
+mininet
+onos
+opendaylight-lithium
+openvpn
+python-exabgp
+quagga
+yaf
 
 %end
 
+
+%post
+# Set SSH banner 
+echo cloudrouter | /usr/bin/figlet | /usr/bin/boxes -d shell > /etc/ssh/sshd_banner
+/bin/sed -i "s|#Banner none|Banner /etc/ssh/sshd_banner|" /etc/ssh/sshd_config
+%end
