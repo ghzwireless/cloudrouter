@@ -8,8 +8,6 @@ firewalld
 
 %post
 
-# install rpm gpg keys
-/usr/bin/rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-*
 
 # Add cloud init - default user
 /bin/cat >/etc/cloud/cloud.cfg.d/90_cloudrouter.cfg <<-EOF

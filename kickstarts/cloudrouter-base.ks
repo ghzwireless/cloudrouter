@@ -70,4 +70,7 @@ echo "net.ipv6.conf.all.forwarding = 1" >> /etc/sysctl.d/90-cloudrouter.conf
 echo "net.ipv6.conf.default.forwarding = 1" >> /etc/sysctl.d/90-cloudrouter.conf
 echo "net.ipv6.route.max_size = 50000" >> /etc/sysctl.d/90-cloudrouter.conf
 
+# install rpm gpg keys
+/usr/bin/rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-*
+
 %end
