@@ -1,6 +1,6 @@
 %packages
 @hardware-support --optional
-%include ../build/images/package-lists/full
+%include cloudrouter-full-package-list
 %end
 
 %post
