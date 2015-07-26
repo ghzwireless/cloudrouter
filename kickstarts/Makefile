@@ -21,6 +21,7 @@ MOCK_ENV    := cloudrouter-mock
 MOCK_CFG    := cloudrouter-mock.cfg
 MOCK_ARCH   := x86_64
 MOCK_KS     := cloudrouter-fedora-dvd-base.ks
+AMI_IMG_NAME:= $(PRODUCT)-$(VERSION)-BETA-$(OS)-ami
 
 
 # Args: BASE_DISTRO BASE_VERSION IMAGE_NAME
@@ -109,8 +110,34 @@ isobuild:
 	sudo mock -r $(MOCK_ENV) --copyout /$(VERSION)/$(MOCK_ARCH)/iso/*DVD*.iso .
 
 
+# virt-install takes longer when nested KVM is unsupported.
+# Setting max wait time to 4h.
+# serial output will be logged to a /tmp file as jenkins runs without tty.
+# NOTE :: EC2 doesn't like when the bootloader is grub or grub2.
+# Based on https://git.fedorahosted.org/cgit/spin-kickstarts.git/tree/fedora-cloud-base.ks?h=f22
+# extlinux will be the bootloader
+amibuild:
+	ksflatten -c cloudrouter-$(OS)-ami.ks -o $(TMP_KS)
+	sed -i '/^bootloader/s/$$/ --timeout=1 --extlinux /' $(TMP_KS)
+	virt-install \
+        --connect qemu:///session \
+	--name=$(TMP_NAME) \
+	--ram=2048 \
+	--cpu=host --vcpus=2 \
+	--os-type=linux \
+	--initrd-inject=$(TMP_KS) \
+	--extra-args="inst.ks=file:/$(TMP_KS) console=tty0 console=ttyS0,115200" \
+	--disk $(AMI_IMG_NAME),size=6,format=raw \
+	--location=$(OS_TREE) \
+	--nographics \
+	--noreboot \
+	--wait 300 \
+	--serial file,path=$(TMP_LOG)
+	virt-cat --connect qemu:///session $(AMI_IMG_NAME) $(TMP_FILE) > $(IMG_MANIFEST)
+	xz --verbose --force $(AMI_IMG_NAME)
 
-all: livecd virt-img docker-img isobuild
+
+all: livecd virt-img docker-img isobuild amibuild
 
 # Phony targets for cleanup and similar uses
 #

@@ -1,0 +1,17 @@
+%include cloudrouter-fedora-cloud.ks
+
+%packages
+# cloudrouter full package list
+%include cloudrouter-full-package-list
+# adjusting to include extlinux and remove grub
+# NOTE :: EC2 doesn't like when the bootloader is grub or grub2.
+# Based on https://git.fedorahosted.org/cgit/spin-kickstarts.git/tree/fedora-cloud-base.ks?h=f22
+# extlinux will be the bootloader
+kernel-core
+grubby
+dracut-config-generic
+syslinux-extlinux
+-grub2
+-kernel
+
+%end
