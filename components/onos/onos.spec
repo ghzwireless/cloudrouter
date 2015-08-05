@@ -3,7 +3,7 @@
 Name: onos
 Summary: Open Network Operating System
 Version: 1.2.1
-Release: 2%{?dist}
+Release: 3%{?dist}
 Source0: http://downloads.onosproject.org/release/onos-%{version}.tar.gz
 Source1: onos.service
 Group: Applications/Communications
@@ -11,7 +11,8 @@ License: ASL 2.0
 URL: http://www.onosproject.org
 BuildArch: noarch
 BuildRoot: %{_tmppath}/%{name}-buildroot
-Requires: java-devel >= 1.8.0
+%{?rhel:Requires: java-1.8.0-openjdk-devel}
+%{?fedora:Requires: java-devel >= 1.8.0}
 Requires(pre): shadow-utils, glibc-common
 Requires(postun): shadow-utils
 BuildRequires: systemd
@@ -66,6 +67,8 @@ userdel %{onos_user}
 %attr(0644,-,-) %{_unitdir}/%{name}.service
 
 %changelog
+* Wed Aug 05 2015 Jay Turner <jkt@iix.net> - 1.2.1-3
+- Modified requires to accommodate for CentOS which does not provide java-devel
 * Tue Jul 07 2015 John Siegrist <jsiegrist@iix.net> - 1.2.1-2
 - Modified %postun to remove explicit groupdel call.
 * Thu Jul 02 2015 John Siegrist <jsiegrist@iix.net> - 1.2.1-1
