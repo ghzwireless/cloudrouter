@@ -15,4 +15,4 @@
 	url = https://github.com/cloudrouter/cloudrouter-component-odl-lithium.git
 [submodule "components/openvswitch"]
 	path = components/openvswitch
-	url = git@github.com:cloudrouter/cloudrouter-component-openvswitch.git
+	url = https://github.com/cloudrouter/cloudrouter-component-openvswitch.git
