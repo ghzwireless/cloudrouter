@@ -13,3 +13,6 @@
 [submodule "components/opendaylight-lithium"]
 	path = components/opendaylight-lithium
 	url = https://github.com/cloudrouter/cloudrouter-component-odl-lithium.git
+[submodule "components/openvswitch"]
+	path = components/openvswitch
+	url = git@github.com:cloudrouter/cloudrouter-component-openvswitch.git
