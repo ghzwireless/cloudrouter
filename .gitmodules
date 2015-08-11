@@ -16,3 +16,15 @@
 [submodule "components/openvswitch"]
 	path = components/openvswitch
 	url = https://github.com/cloudrouter/cloudrouter-component-openvswitch.git
+[submodule "components/cloudrouter-fedora-repo"]
+	path = components/cloudrouter-fedora-repo
+	url = https://github.com/cloudrouter/cloudrouter-fedora-repo.git
+[submodule "components/cloudrouter-centos-repo"]
+	path = components/cloudrouter-centos-repo
+	url = https://github.com/cloudrouter/cloudrouter-centos-repo.git
+[submodule "components/cloudrouter-centos-release"]
+	path = components/cloudrouter-centos-release
+	url = https://github.com/cloudrouter/cloudrouter-centos-release.git
+[submodule "components/cloudrouter-fedora-release"]
+	path = components/cloudrouter-fedora-release
+	url = https://github.com/cloudrouter/cloudrouter-fedora-release.git
