@@ -21,7 +21,7 @@ MOCK_ENV    := cloudrouter-mock
 MOCK_CFG    := cloudrouter-mock.cfg
 MOCK_ARCH   := x86_64
 MOCK_KS     := cloudrouter-fedora-dvd-base.ks
-AMI_IMG_NAME:= $(PRODUCT)-$(VERSION)-BETA-$(OS)-ami
+AMI_IMG_NAME:= $(PRODUCT)-$(VERSION)-$(OS)-ami
 
 
 # Args: BASE_DISTRO BASE_VERSION IMAGE_NAME
@@ -31,9 +31,9 @@ livecd:
 	--verbose \
 	--product="$(PRODUCT) $(VERSION)" \
 	--config=$(TMP_KS) \
-	--releasever="$(OS_VERSION)" \
-	--fslabel="$(PRODUCT)-Live-$(VERSION)-BETA-$(OS)" \
-	--title "$(PRODUCT) Live $(VERSION) BETA $(OS)" \
+	--releasever="$(VERSION)" \
+	--fslabel="$(PRODUCT)-Live-$(VERSION)-$(OS)" \
+	--title "$(PRODUCT) Live $(VERSION) $(OS)" \
 	--cache=/var/cache/live
 
 # virt-install takes longer when nested KVM is unsupported.
