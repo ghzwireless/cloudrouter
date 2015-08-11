@@ -1,8 +1,8 @@
-repo --name=cloudrouter --baseurl=https://repo.cloudrouter.org/fedora/2/$basearch/
+repo --name=cloudrouter --baseurl=https://repo.cloudrouter.org/fedora/22/$basearch/
 %include cloudrouter-base.ks
 %include cloudrouter-fedora-repo.ks
 
 %packages
-cloudrouter-release-fedora
-cloudrouter-release-fedora-notes
+cloudrouter-fedora-release
+cloudrouter-fedora-release-notes
 %end
