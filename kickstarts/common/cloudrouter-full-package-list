@@ -3,7 +3,7 @@ bind
 dhcp
 dnsmasq
 dnsmasq-utils
-docker-io
+docker
 firewalld
 ipsec-tools
 iputils
@@ -30,4 +30,3 @@ openvpn
 python-exabgp
 quagga
 yaf
-

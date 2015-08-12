@@ -3,8 +3,8 @@
 install
 text
 lang en_US.UTF-8
-keyboard us
-timezone US/Eastern
+keyboard --vckeymap=us --xlayouts='us'
+timezone America/New_York --isUtc --nontp
 
 # setup authentication for the system
 auth --useshadow --enablemd5
