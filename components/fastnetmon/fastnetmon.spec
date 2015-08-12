@@ -6,7 +6,7 @@
 
 Name:       fastnetmon
 Version:    1.1.2
-Release:    1%{?dist}
+Release:    2%{?dist}
 
 Summary:    A very fast DDoS analyzer with sflow/netflow/mirror support       
 Group:      System Environment/Daemons
@@ -14,6 +14,7 @@ License:    GPLv2
 URL:        https://github.com/FastVPSEestiOu/fastnetmon
 
 Source0:    https://github.com/FastVPSEestiOu/fastnetmon/archive/v%{version}/%{name}-%{version}.tar.gz
+Source1:    fastnetmon.conf
 
 BuildRequires:     git, make, gcc, gcc-c++, boost-devel, GeoIP-devel, log4cpp-devel
 BuildRequires:     ncurses-devel, boost-thread, boost-regex, libpcap-devel, gpm-devel, clang, cmake
@@ -55,7 +56,7 @@ install -p -D -m 0755 src/build/fastnetmon %{buildroot}%{_sbindir}/fastnetmon
 install -p -D -m 0755 src/build/fastnetmon_client %{buildroot}%{_bindir}/fastnetmon_client
 
 # install config
-install -p -D -m 0755 src/fastnetmon.conf %{buildroot}%{fastnetmon_config_path}
+install -p -D -m 0755 %{SOURCE1} %{buildroot}%{fastnetmon_config_path}
 
 # Create log folder
 install -p -d -m 0700 %{buildroot}%{fastnetmon_attackdir}
@@ -90,6 +91,9 @@ fi
 
 
 %changelog
+* Wed Aug 12 2015 Jay Turner <jkt@iix.net> - 1.1.2-2
+- Write-out config template instead of pre-configured config file
+
 * Thu Jun 04 2015 Arun Babu Neelicattu <arun.neelicattu@gmail.com> - 1.1.1-1
 - Update upstream specfile for initial release
 
