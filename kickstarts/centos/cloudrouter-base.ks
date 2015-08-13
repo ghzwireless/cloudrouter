@@ -7,7 +7,7 @@ keyboard --vckeymap=us --xlayouts='us'
 timezone America/New_York --isUtc --nontp
 
 # setup authentication for the system
-auth --useshadow --enablemd5
+auth --useshadow --passalgo=sha512
 
 # enable SELinux because that is the way we roll
 selinux --enforcing
@@ -22,17 +22,8 @@ user --name=none
 firewall --enabled --service=mdns,ssh
 
 # bootloader installation and configuration with kernel parameters
-bootloader --location=mbr --append="console=tty0 console=ttyS0,115200"
-
-# clear and initialize any invalid partition tables found on disk
-zerombr
-
-# clear all partitions
-clearpart --all --initlabel
-
-# create root partition with 4GB
-# TODO: split out boot and swap?
-part / --size 4096 --fstype ext4
+# Parameters net.ifnames=0 biosdevname=0 are added to disable Consistent Network Device Naming
+bootloader --location=mbr --append="console=tty0 console=ttyS0,115200 net.ifnames=0 biosdevname=0"
 
 # configure and activate network (link) at boot time
 network --bootproto=dhcp --device=link --activate --onboot=on
@@ -40,8 +31,18 @@ network --bootproto=dhcp --device=link --activate --onboot=on
 # configure services to run at default runlevel
 services --enabled=network,sshd,rsyslog
 
-# Halt the system once configuration has finished.
-poweroff
+# Configure the disk:
+#   1. Clear and initialize any invalid partition tables found on disk
+#   2. Clear all partitions
+#   3. Create root partition
+#      TODO: split out boot and swap?
+zerombr
+clearpart --all --initlabel
+#part / --size 4096 --fstype ext4 --grow
+part / --size 4096 --fstype ext4
+
+# Shutdown after image creation completed.
+shutdown
 
 %packages
 @core
@@ -58,8 +59,30 @@ firewalld
 -plymouth
 %end
 
-
 %post
+
+echo -n "Network fixes"
+# initscripts don't like this file to be missing.
+# and https://bugzilla.redhat.com/show_bug.cgi?id=1204612
+cat > /etc/sysconfig/network << EOF
+NETWORKING=yes
+NOZEROCONF=yes
+DEVTIMEOUT=10
+EOF
+
+# Disables the Consistent Network Device Naming Rule
+# https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/7/html/Networking_Guide/sec-Disabling_Consistent_Network_Device_Naming.html
+# NOTE: THE RULE NAME IS DIFFERENT FOR FEDORA!
+ln -s /dev/null /etc/udev/rules.d/80-net-name-slot.rules
+
+# simple eth0 config, again not hard-coded to the build hardware
+cat > /etc/sysconfig/network-scripts/ifcfg-eth0 << EOF
+DEVICE="eth0"
+BOOTPROTO="dhcp"
+ONBOOT="yes"
+TYPE="Ethernet"
+PERSISTENT_DHCLIENT="yes"
+EOF
 
 # Set SSH banner 
 echo CloudRouter 2.0 > /etc/ssh/sshd_banner
