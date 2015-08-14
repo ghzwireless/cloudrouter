@@ -1,12 +1,6 @@
 [submodule "contrib-shared"]
 	path = contrib-shared
 	url = https://github.com/cloudrouter/cloudrouter-contrib-shared.git
-[submodule "components/cloudrouter-release"]
-	path = components/cloudrouter-release
-	url = https://github.com/cloudrouter/cloudrouter-release.git
-[submodule "components/cloudrouter-repo"]
-	path = components/cloudrouter-repo
-	url = https://github.com/cloudrouter/cloudrouter-repo.git
 [submodule "components/dpdk"]
 	path = components/dpdk
 	url = https://github.com/cloudrouter/cloudrouter-component-dpdk.git
