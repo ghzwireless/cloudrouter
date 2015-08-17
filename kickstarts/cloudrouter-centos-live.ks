@@ -5,5 +5,5 @@
 
 %packages
 @hardware-support --optional
-%include cloudrouter-full-package-list
+%include common/cloudrouter-full-package-list
 %end
