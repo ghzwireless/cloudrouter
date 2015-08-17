@@ -64,7 +64,8 @@ figlet
 # Set SSH banner 
 echo cloudrouter | /usr/bin/figlet > /etc/ssh/sshd_banner
 /bin/sed -i "s|#Banner none|Banner /etc/ssh/sshd_banner|" /etc/ssh/sshd_config
-%end
 
 # install rpm gpg keys
 /usr/bin/rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-*
+
+%end
