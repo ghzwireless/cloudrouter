@@ -1,0 +1,10 @@
+@core
+
+# explicit packages
+kernel
+firewalld
+# for ssh banner
+figlet
+
+# we do not need plymouth
+-plymouth

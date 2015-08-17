@@ -43,23 +43,6 @@ services --enabled=network,sshd,rsyslog
 #reboot
 reboot
 
-%packages
-@core
-
-# explicit packages
-kernel
-firewalld
-# for ssh banner
-figlet
-
-# we do not need plymouth
--plymouth
-
-# cloudrouter full package set
-%include common/cloudrouter-full-package-list
-
-%end
-
 %post
 # Set SSH banner 
 echo cloudrouter | /usr/bin/figlet > /etc/ssh/sshd_banner

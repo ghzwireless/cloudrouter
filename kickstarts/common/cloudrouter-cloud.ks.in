@@ -1,13 +1,7 @@
 # configure services to run
 services --enabled="cloud-init,network,sshd,rsyslog"
 
-%packages
-cloud-init
-firewalld
-%end
-
 %post
-
 
 # Add cloud init - default user
 /bin/cat >/etc/cloud/cloud.cfg.d/90_cloudrouter.cfg <<-EOF

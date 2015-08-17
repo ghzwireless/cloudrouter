@@ -18,9 +18,8 @@ TMP_KS      := ksflatten.txt
 LOG_DIR     := $(shell mktemp -d)
 TMP_LOG     := $(LOG_DIR)/$(TMP_NAME).log
 MOCK_ENV    := cloudrouter-mock
-MOCK_CFG    := cloudrouter-mock.cfg
+MOCK_CFG    := $(OS)/cloudrouter-mock.cfg
 MOCK_ARCH   := x86_64
-MOCK_KS     := cloudrouter-fedora-dvd-base.ks
 AMI_IMG_NAME:= $(PRODUCT)-$(VERSION)-$(OS)-ami
 
 
@@ -107,7 +106,7 @@ isobuild:
 	sudo mock -r $(MOCK_ENV) --chroot "pungi --force \
 		-I --isfinal --nosource --nodebuginfo \
 		--name $(PRODUCT) --ver $(VERSION) -c /$(MOCK_KS)"
-	sudo mock -r $(MOCK_ENV) --copyout /$(VERSION)/$(MOCK_ARCH)/iso/*DVD*.iso .
+	sudo mock -r $(MOCK_ENV) --copyout /$(VERSION)/$(MOCK_ARCH)/iso/*DVD*.iso ./CloudRouter-$(VERSION)-DVD-$(MOCK_ARCH).iso
 
 
 # virt-install takes longer when nested KVM is unsupported.

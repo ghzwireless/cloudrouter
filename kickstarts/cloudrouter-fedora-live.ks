@@ -5,6 +5,7 @@
 %include fedora/cloudrouter-fedora-fix.ks.in
 
 %packages
-@hardware-support --optional
+%include common/base-package-list
+%include common/live-package-list
 %include common/cloudrouter-full-package-list
 %end

@@ -43,19 +43,6 @@ part / --size 4096 --fstype ext4 --grow
 # Shutdown after image creation completed.
 shutdown
 
-%packages
-@core
-
-# explicit packages
-kernel
-firewalld
-# for ssh banner
-figlet
-
-# we do not need plymouth
--plymouth
-%end
-
 %post
 
 # Set SSH banner 

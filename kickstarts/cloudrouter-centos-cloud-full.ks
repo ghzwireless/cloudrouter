@@ -4,6 +4,5 @@
 %include cloudrouter-centos-cloud-minimal.ks
 
 %packages
-# CloudRouter full package list
 %include common/cloudrouter-full-package-list
 %end
