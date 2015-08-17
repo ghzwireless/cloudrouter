@@ -1,7 +1,6 @@
 %include common/cloudrouter-base.ks
 %include centos/cloudrouter-centos-base.ks
 %include common/cloudrouter-live.ks.in
-%include common/cloudrouter-cleanup.ks.in
 
 %packages
 %include common/base-package-list
