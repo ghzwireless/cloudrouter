@@ -89,7 +89,7 @@ docker-img:
 
 isobuild:
 	$(eval VERSION=`echo $(VERSION) | cut -f1 -d"."`)
-	ksflatten -c cloudrouter-fedora-DVD.ks -o ks.cfg
+	ksflatten -c cloudrouter-$(OS)-DVD.ks -o ks.cfg
 	sudo cp $(MOCK_CFG) /etc/mock/
 	sudo mock -r $(MOCK_ENV) clean
 	sudo mock -r $(MOCK_ENV) init
