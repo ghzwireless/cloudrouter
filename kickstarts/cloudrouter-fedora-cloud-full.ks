@@ -1,4 +1,4 @@
-%include cloudrouter-fedora-cloud.ks
+%include cloudrouter-fedora-cloud-minimal.ks
 
 %packages
 # cloudrouter full package list

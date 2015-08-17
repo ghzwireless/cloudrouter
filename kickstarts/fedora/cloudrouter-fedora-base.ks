@@ -1,5 +1,3 @@
-%include common/cloudrouter-base.ks
-
 # including CloudRouter repo
 repo --name=cloudrouter --baseurl=https://repo.cloudrouter.org/fedora/22/$basearch/
 

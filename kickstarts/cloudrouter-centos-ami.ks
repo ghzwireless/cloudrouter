@@ -1,4 +1,4 @@
-%include cloudrouter-fedora-cloud-full.ks
+%include cloudrouter-centos-cloud-full.ks
 
 %packages
 # adjusting to include extlinux and remove grub
