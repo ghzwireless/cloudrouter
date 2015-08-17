@@ -2,7 +2,6 @@
 %include fedora/cloudrouter-fedora-base.ks
 %include common/cloudrouter-live.ks.in
 %include common/cloudrouter-cleanup.ks.in
-%include fedora/cloudrouter-fedora-fix.ks.in
 
 %packages
 %include common/base-package-list
