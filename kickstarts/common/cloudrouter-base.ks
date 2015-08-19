@@ -23,7 +23,7 @@ firewall --enabled --service=mdns,ssh
 
 # bootloader installation and configuration with kernel parameters
 # Parameters net.ifnames=0 biosdevname=0 are added to disable Consistent Network Device Naming
-bootloader --location=mbr --append="console=tty0 console=ttyS0,115200 net.ifnames=0 biosdevname=0"
+bootloader --location=mbr --append="console=ttyS0,115200 console=tty1 net.ifnames=0 biosdevname=0"
 
 # configure and activate network (link) at boot time
 network --bootproto=dhcp --device=link --activate --onboot=on
@@ -83,5 +83,8 @@ echo "net.ipv4.ip_forward = 1" > /etc/sysctl.d/90-cloudrouter.conf
 echo "net.ipv6.conf.all.forwarding = 1" >> /etc/sysctl.d/90-cloudrouter.conf
 echo "net.ipv6.conf.default.forwarding = 1" >> /etc/sysctl.d/90-cloudrouter.conf
 echo "net.ipv6.route.max_size = 50000" >> /etc/sysctl.d/90-cloudrouter.conf
+
+# enable getty term for all builds
+systemctl enable getty@tty1.service
 
 %end
