@@ -3,7 +3,7 @@
 #
 #   make-cloud-init-iso.sh
 #   Description: Create a cloud-init iso for cloudrouter
-#   Version: 1.2
+#   Version: 1.3
 #
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
@@ -90,6 +90,13 @@ if [ "$SKIPSSHKEY" -eq "0" ]; then
       - $(cat ${PUBKEY})
 EOF
 fi
+
+if [ "$SKIPUSERPASS" -eq "0" ]; then
+    cat >> ${WORKING_DIR}/user-data << EOF
+ssh_pwauth: True
+EOF
+fi
+
     cat > ${WORKING_DIR}/meta-data << EOF
 instance-id: ${HOST}
 local-hostname: ${HOST}
