@@ -1,5 +1,4 @@
-%include cloudrouter-fedora-repo.ks
-%include cloudrouter-repo.ks
+%include fedora/cloudrouter-repos.ks
 %include cloudrouter-docker-base.ks
 
 %packages --excludedocs --instLangs=en --nocore --nobase
