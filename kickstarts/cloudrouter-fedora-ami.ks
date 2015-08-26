@@ -3,3 +3,7 @@
 %packages
 %include common/ami-package-list
 %end
+
+%post
+rm -f /etc/shadow-
+%end

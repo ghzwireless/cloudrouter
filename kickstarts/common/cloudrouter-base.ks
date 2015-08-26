@@ -7,7 +7,7 @@ keyboard --vckeymap=us --xlayouts='us'
 timezone America/New_York --isUtc --nontp
 
 # setup authentication for the system
-auth --useshadow --passalgo=sha512
+auth --disableshadow --passalgo=sha512
 
 # enable SELinux because that is the way we roll
 selinux --enforcing
