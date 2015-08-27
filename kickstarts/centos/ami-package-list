@@ -1,0 +1,5 @@
+# for EC2 - grub2 works on CentOS. no need to switch to extlinux for bootloader
+grubby
+dracut-config-generic
+grub2
+grub2-tools

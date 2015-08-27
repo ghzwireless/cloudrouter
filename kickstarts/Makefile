@@ -5,7 +5,6 @@ VERSION     := 2.0
 OS          := fedora
 OS_VERSION  := 22
 OS_TREE     := http://dl.fedoraproject.org/pub/fedora/linux/releases/22/Server/x86_64/os/
-
 PROFILE     := minimal
 ISO_PREFIX	:= $(PRODUCT)-$(VERSION)-$(OS)-$(PROFILE)
 ISO_NAME	:= $(ISO_PREFIX).iso
@@ -115,9 +114,14 @@ isobuild:
 # NOTE :: EC2 doesn't like when the bootloader is grub or grub2.
 # Based on https://git.fedorahosted.org/cgit/spin-kickstarts.git/tree/fedora-cloud-base.ks?h=f22
 # extlinux will be the bootloader
+# CentOS - works with grub2 on amazon ec2
 amibuild:
 	ksflatten -c cloudrouter-$(OS)-ami.ks -o $(TMP_KS)
+ifeq ($(OS),fedora)
 	sed -i '/^bootloader/s/$$/ --timeout=1 --extlinux /' $(TMP_KS)
+else
+	echo .
+endif
 	virt-install \
         --connect qemu:///session \
 	--name=$(TMP_NAME) \
