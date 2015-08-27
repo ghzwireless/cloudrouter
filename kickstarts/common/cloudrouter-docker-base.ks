@@ -2,7 +2,10 @@
 #
 
 cmdline
-bootloader --location=none
+# bootloader installation and configuration with kernel parameters
+# Parameters net.ifnames=0 biosdevname=0 are added to disable Consistent Network Device Naming
+bootloader --location=none --append="net.ifnames=0 biosdevname=0"
+
 timezone --isUtc --nontp Etc/UTC
 rootpw --lock --iscrypted locked
 user --name=none
@@ -14,17 +17,6 @@ part / --size 4000 --fstype ext4
 network --bootproto=dhcp --device=link --activate --onboot=on
 shutdown
 
-%packages --excludedocs --instLangs=en --nocore --nobase
-@core --nodefaults
-bash
-rootfiles
-vim-minimal
-dnf
-dnf-yum  
--kernel
-
-%end
-
 %post 
 
 # Generate rpm manifest file
@@ -32,6 +24,23 @@ dnf-yum
 
 # remove the user anaconda forces us to make
 userdel -r none
+
+# Disables the Consistent Network Device Naming Rule
+# https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/7/html/Networking_Guide/sec-Disabling_Consistent_Network_Device_Naming.html
+# NOTE: THE RULE NAME IS DIFFERENT FOR FEDORA!
+# CentOS 7 rule name
+ln -s /dev/null /etc/udev/rules.d/80-net-name-slot.rules
+# Fedora rule name
+ln -s /dev/null /etc/udev/rules.d/80-net-setup-link.rules
+
+# simple eth0 config, again not hard-coded to the build hardware
+cat > /etc/sysconfig/network-scripts/ifcfg-eth0 << EOF
+DEVICE="eth0"
+BOOTPROTO="dhcp"
+ONBOOT="yes"
+TYPE="Ethernet"
+PERSISTENT_DHCLIENT="yes"
+EOF
 
 LANG="en_US"
 echo "%_install_lang $LANG" > /etc/rpm/macros.image-language-conf

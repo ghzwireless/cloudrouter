@@ -1,14 +1,15 @@
-%include fedora/cloudrouter-repos.ks
+%include centos/cloudrouter-repos.ks
 %include common/cloudrouter-docker-base.ks
 
 %packages --excludedocs --instLangs=en --nocore --nobase
 %include common/docker-package-list
 
-cloudrouter-fedora-release
-cloudrouter-fedora-release-notes
-dnf
-dnf-yum  
+cloudrouter-centos-release
+cloudrouter-centos-release-notes
+
 %end
+
+
 
 %post
 # install rpm gpg keys

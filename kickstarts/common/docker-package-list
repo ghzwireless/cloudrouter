@@ -1,0 +1,5 @@
+@core --nodefaults
+bash
+rootfiles
+vim-minimal
+-kernel
