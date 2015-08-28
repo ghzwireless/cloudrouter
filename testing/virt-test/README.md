@@ -17,3 +17,5 @@
 6. run the cloudrouter tests with one or more tests.
 
         $ sudo ./run -t qemu -g Linux.Cloudrouter.2.x86_64 --tests "cloudrouter.baseos cloudrouter.basebird cloudrouter.basequagga cloudrouter.baseonos cloudrouter.baseopendaylight cloudrouter.basefastnetmon cloudrouter.basemininet cloudrouter.basecapstan"
+
+Note: if running a test on centos builds you will need to run "sed -i -e 's/dnf/yum/g' cloudrouter-tests/generic/tests/*.py"

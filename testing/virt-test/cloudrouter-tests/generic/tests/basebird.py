@@ -25,11 +25,11 @@ def run(test, params, env):
     logging.info("Install BIRD package: %s", cloudrouter)
     cloudrouter = session.cmd("rpm -q bird")
     logging.info("BIRD version: %s", cloudrouter)
-    cloudrouter = session.cmd("sudo file -E /etc/bird.conf")
+    cloudrouter = session.cmd("sudo test -e /etc/bird.conf")
     logging.info("BIRD config file exists: %s", cloudrouter)
     cloudrouter = session.cmd("sudo systemctl enable bird")
     logging.info("Enable BIRD service: %s", cloudrouter)
-    cmd = "sudo file -E /etc/systemd/system/multi-user.target.wants/bird.service"
+    cmd = "sudo test -e /etc/systemd/system/multi-user.target.wants/bird.service"
     cloudrouter = session.cmd(cmd)
     logging.info("Service enabled in systemd: %s", cloudrouter)
     cloudrouter = session.cmd("sudo systemctl start bird")

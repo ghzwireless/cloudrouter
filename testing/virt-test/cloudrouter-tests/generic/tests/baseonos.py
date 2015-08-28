@@ -27,7 +27,7 @@ def run(test, params, env):
     logging.info("ONOS version: %s", cloudrouter)
     cloudrouter = session.cmd("sudo systemctl enable onos")
     logging.info("Enable onos service: %s", cloudrouter)
-    cmd = "sudo file -E /etc/systemd/system/multi-user.target.wants/onos.service"
+    cmd = "sudo test -e /etc/systemd/system/multi-user.target.wants/onos.service"
     cloudrouter = session.cmd(cmd)
     logging.info("Service enabled in systemd: %s", cloudrouter)
     cloudrouter = session.cmd("sudo systemctl start onos")

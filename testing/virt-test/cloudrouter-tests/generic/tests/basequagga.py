@@ -25,11 +25,11 @@ def run(test, params, env):
     logging.info("Install QUAGGA package: %s", cloudrouter)
     cloudrouter = session.cmd("rpm -q quagga")
     logging.info("QUAGGA version: %s", cloudrouter)
-    cloudrouter = session.cmd("sudo file -E /etc/quagga/zebra.conf")
+    cloudrouter = session.cmd("sudo test -e /etc/quagga/zebra.conf")
     logging.info("zebra config file exists: %s", cloudrouter)
     cloudrouter = session.cmd("sudo systemctl enable zebra")
     logging.info("Enable zebra service: %s", cloudrouter)
-    cmd = "sudo file -E /etc/systemd/system/multi-user.target.wants/zebra.service"
+    cmd = "sudo test -e /etc/systemd/system/multi-user.target.wants/zebra.service"
     cloudrouter = session.cmd(cmd)
     logging.info("Service enabled in systemd: %s", cloudrouter)
     cloudrouter = session.cmd("sudo systemctl start zebra")

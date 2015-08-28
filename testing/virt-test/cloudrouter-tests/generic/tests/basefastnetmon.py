@@ -25,11 +25,11 @@ def run(test, params, env):
     logging.info("Install FastNetMon package: %s", cloudrouter)
     cloudrouter = session.cmd("rpm -q fastnetmon")
     logging.info("FastNetMon version: %s", cloudrouter)
-    cloudrouter = session.cmd("sudo file -E /etc/fastnetmon.conf")
+    cloudrouter = session.cmd("sudo test -e /etc/fastnetmon.conf")
     logging.info("FastNetMon config file exists: %s", cloudrouter)
     cloudrouter = session.cmd("sudo systemctl enable fastnetmon")
     logging.info("Enable BIRD service: %s", cloudrouter)
-    cmd = "sudo file -E /etc/systemd/system/multi-user.target.wants/fastnetmon.service"
+    cmd = "sudo test -e /etc/systemd/system/multi-user.target.wants/fastnetmon.service"
     cloudrouter = session.cmd(cmd)
     logging.info("Service enabled in systemd: %s", cloudrouter)
     cloudrouter = session.cmd("sudo systemctl start fastnetmon")

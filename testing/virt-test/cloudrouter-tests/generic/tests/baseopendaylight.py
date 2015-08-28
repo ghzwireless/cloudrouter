@@ -27,7 +27,7 @@ def run(test, params, env):
     logging.info("OpenDaylight version: %s", cloudrouter)
     cloudrouter = session.cmd("sudo systemctl enable opendaylight-lithium")
     logging.info("Enable opendaylight-lithium service: %s", cloudrouter)
-    cmd = "sudo file -E /etc/systemd/system/multi-user.target.wants/opendaylight-lithium.service"
+    cmd = "sudo test -e /etc/systemd/system/multi-user.target.wants/opendaylight-lithium.service"
     cloudrouter = session.cmd(cmd)
     logging.info("Service enabled in systemd: %s", cloudrouter)
     cloudrouter = session.cmd("sudo systemctl start opendaylight-lithium")
