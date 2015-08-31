@@ -7,7 +7,7 @@ License: GPL
 URL: http://research.wand.net.nz/software/libtrace.php
 Name: %{name}
 Version: %{version}
-Release: 1
+Release: 2%{?dist}
 Source: http://research.wand.net.nz/software/libtrace/%{name}-%{version}.tar.bz2
 Prefix: /usr
 Group: System/Libraries
@@ -68,6 +68,9 @@ rm -rf %{buildroot}
 %{_mandir}/man1/*
 
 %changelog
+* Sat Aug 29 2015 John Siegrist <jsiegrist@iix.net> - 3.0.22-2
+- Added the dist macro to the Release version.
+
 * Tue Jun 02 2015 Arun Babu Neelicattu <arun.neelicattu@gmail.com> - 3.0.22-1
 - Initial specfile derrived from
   http://software.opensuse.org/download.html?project=home:cdwertmann:oml&package=libtrace
