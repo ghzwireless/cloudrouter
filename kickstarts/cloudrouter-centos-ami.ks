@@ -12,7 +12,7 @@ rm -f /etc/shadow-
 /bin/passwd -l root
 
 # remove password authentication from ssh config
-/bin/sed -i "s|#PasswordAuthentication yes|PasswordAuthentication no|" /etc/ssh/sshd_config
+/bin/sed -i "s|PasswordAuthentication yes|PasswordAuthentication no|" /etc/ssh/sshd_config
 
 %end
 
