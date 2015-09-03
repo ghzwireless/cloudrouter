@@ -2,7 +2,7 @@
 
 Name: onos
 Summary: Open Network Operating System
-Version: 1.2.1
+Version: 1.2.2
 Release: 3%{?dist}
 Source0: http://downloads.onosproject.org/release/onos-%{version}.tar.gz
 Source1: onos.service
@@ -67,6 +67,8 @@ userdel %{onos_user}
 %attr(0644,-,-) %{_unitdir}/%{name}.service
 
 %changelog
+* Thu Sep 03 2015 David Jorm <djorm@iix.net> - 1.2.2-1
+- Upgrade to 1.2.2 (Cardinal)
 * Wed Aug 05 2015 Jay Turner <jkt@iix.net> - 1.2.1-3
 - Modified requires to accommodate for CentOS which does not provide java-devel
 * Tue Jul 07 2015 John Siegrist <jsiegrist@iix.net> - 1.2.1-2
