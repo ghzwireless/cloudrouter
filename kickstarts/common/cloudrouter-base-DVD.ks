@@ -51,4 +51,7 @@ echo cloudrouter | /usr/bin/figlet > /etc/ssh/sshd_banner
 # install rpm gpg keys
 /usr/bin/rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-*
 
+# fix selinux contexts
+touch /.autorelabel
+
 %end

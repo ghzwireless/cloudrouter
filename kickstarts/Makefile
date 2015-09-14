@@ -18,6 +18,7 @@ LOG_DIR     := $(shell mktemp -d)
 TMP_LOG     := $(LOG_DIR)/$(TMP_NAME).log
 MOCK_ENV    := cloudrouter-mock
 MOCK_CFG    := $(OS)/cloudrouter-mock.cfg
+MOCK_KS     := ks.cfg
 MOCK_ARCH   := x86_64
 AMI_IMG_NAME:= $(PRODUCT)-$(VERSION)-$(OS)-ami
 
@@ -87,7 +88,7 @@ docker-img:
 
 isobuild:
 	$(eval VERSION=`echo $(VERSION) | cut -f1 -d"."`)
-	ksflatten -c cloudrouter-$(OS)-DVD.ks -o ks.cfg
+	ksflatten -c cloudrouter-$(OS)-DVD.ks -o $(MOCK_KS)
 	sudo cp $(MOCK_CFG) /etc/mock/
 	sudo mock -r $(MOCK_ENV) clean
 	sudo mock -r $(MOCK_ENV) init
@@ -98,14 +99,14 @@ isobuild:
 		-G -C -B --isfinal --nosource --nodebuginfo \
 		--name $(PRODUCT) --ver $(VERSION) -c /$(MOCK_KS)"
 	sudo mock -r $(MOCK_ENV) --copyin \
-		ks.cfg /$(VERSION)/$(MOCK_ARCH)/os/
+		$(MOCK_KS) /$(VERSION)/$(MOCK_ARCH)/os/
 	sudo mock -r $(MOCK_ENV) --chroot "sed -i \
 		'/initrd.img/s/$$/ ks=cdrom:\/ks.cfg /' \
 		/$(VERSION)/$(MOCK_ARCH)/os/isolinux/isolinux.cfg"
 	sudo mock -r $(MOCK_ENV) --chroot "pungi --force \
 		-I --isfinal --nosource --nodebuginfo \
 		--name $(PRODUCT) --ver $(VERSION) -c /$(MOCK_KS)"
-	sudo mock -r $(MOCK_ENV) --copyout /$(VERSION)/$(MOCK_ARCH)/iso/*DVD*.iso ./CloudRouter-$(VERSION)-DVD-$(MOCK_ARCH).iso
+	sudo mock -r $(MOCK_ENV) --copyout /$(VERSION)/$(MOCK_ARCH)/iso/*DVD*.iso ./CloudRouter-$(OS)-$(VERSION)-DVD-$(MOCK_ARCH).iso
 
 
 # virt-install takes longer when nested KVM is unsupported.
