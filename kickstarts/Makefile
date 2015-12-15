@@ -1,10 +1,10 @@
 # Copyright 2015 CloudRouter Project Authors.
 
 PRODUCT     := CloudRouter
-VERSION     := 2.0
+VERSION     := 3.0
 OS          := fedora
-OS_VERSION  := 22
-OS_TREE     := http://dl.fedoraproject.org/pub/fedora/linux/releases/22/Server/x86_64/os/
+OS_VERSION  := 23
+OS_TREE     := http://dl.fedoraproject.org/pub/fedora/linux/releases/23/Server/x86_64/os/
 PROFILE     := minimal
 ISO_PREFIX	:= $(PRODUCT)-$(VERSION)-$(OS)-$(PROFILE)
 ISO_NAME	:= $(ISO_PREFIX).iso
@@ -40,21 +40,24 @@ livecd:
 # serial output will be logged to a /tmp file as jenkins runs without tty.
 virt-img: 
 	ksflatten -c cloudrouter-$(OS)-cloud-$(PROFILE).ks -o $(TMP_KS)
+	touch $(TMP_LOG)
+	chmod 777 $(TMP_LOG)
 	virt-install \
-        --connect qemu:///session \
+        --connect qemu:///system \
 	--name=$(TMP_NAME) \
 	--ram=2048 \
-	--cpu=host --vcpus=2 \
-	--os-type=linux \
+	--vcpus=2 \
 	--initrd-inject=$(TMP_KS) \
 	--extra-args="inst.ks=file:/$(TMP_KS) console=tty0 console=ttyS0,115200" \
 	--disk $(IMG_NAME),size=6,format=raw \
 	--location=$(OS_TREE) \
+	--network bridge=virbr0 \
 	--nographics \
 	--noreboot \
 	--wait 300 \
-	--serial file,path=$(TMP_LOG)
-	virt-cat --connect qemu:///session $(IMG_NAME) $(TMP_FILE) > $(IMG_MANIFEST)
+	--serial file,path=$(TMP_LOG) \
+	--noautoconsole
+	virt-cat --connect qemu:///system $(IMG_NAME) $(TMP_FILE) > $(IMG_MANIFEST)
 	xz --verbose --force $(IMG_NAME)
 
 # virt-install takes longer when done on nested KVM
@@ -63,7 +66,7 @@ virt-img:
 docker-img:
 	ksflatten -c cloudrouter-$(OS)-docker.ks -o $(TMP_KS)
 	virt-install \
-        --connect qemu:///session \
+        --connect qemu:///system \
 	--name=$(TMP_NAME) \
 	--ram=2048 \
 	--cpu=host --vcpus=2 \
@@ -76,7 +79,7 @@ docker-img:
 	--noreboot \
 	--wait 300 \
 	--serial file,path=$(TMP_LOG)
-	virt-cat --connect qemu:///session $(IMG_NAME) $(TMP_FILE) > $(IMG_MANIFEST)
+	virt-cat --connect qemu:///system $(IMG_NAME) $(TMP_FILE) > $(IMG_MANIFEST)
 	virt-tar-out -a $(IMG_NAME) / - | xz --best > $(ISO_PREFIX)-docker.tar.xz
 	echo "From scratch" > Dockerfile
 	echo "MAINTAINER Jay Turner<jturner@iix.net>" >> Dockerfile
@@ -124,7 +127,7 @@ else
 	echo .
 endif
 	virt-install \
-        --connect qemu:///session \
+        --connect qemu:///system \
 	--name=$(TMP_NAME) \
 	--ram=2048 \
 	--cpu=host --vcpus=2 \
@@ -137,7 +140,7 @@ endif
 	--noreboot \
 	--wait 300 \
 	--serial file,path=$(TMP_LOG)
-	virt-cat --connect qemu:///session $(AMI_IMG_NAME) $(TMP_FILE) > $(IMG_MANIFEST)
+	virt-cat --connect qemu:///system $(AMI_IMG_NAME) $(TMP_FILE) > $(IMG_MANIFEST)
 	xz --verbose --force $(AMI_IMG_NAME)
 
 
@@ -149,5 +152,5 @@ all: livecd virt-img docker-img isobuild amibuild
 
 clean:
 	sudo rm -f *.log *.iso *.raw *.xz $(TMP_KS) *.manifest Dockerfile
-	virsh --connect qemu:///session destroy $(TMP_NAME) || true
-	virsh --connect qemu:///session undefine $(TMP_NAME) || true
+	virsh --connect qemu:///system destroy $(TMP_NAME) || true
+	virsh --connect qemu:///system undefine $(TMP_NAME) || true

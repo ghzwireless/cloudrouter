@@ -19,7 +19,7 @@ xl2tpd
 bgpstream
 bird
 capstan
-dpdk
+#dpdk
 fastnetmon
 libfixbuf
 libtrace
