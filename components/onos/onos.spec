@@ -2,7 +2,7 @@
 
 Name: onos
 Summary: Open Network Operating System
-Version: 1.3.0
+Version: 1.4.0
 Release: 1%{?dist}
 Source0: http://downloads.onosproject.org/release/onos-%{version}.tar.gz
 Source1: onos.service
@@ -67,6 +67,8 @@ userdel %{onos_user}
 %attr(0644,-,-) %{_unitdir}/%{name}.service
 
 %changelog
+* Tue Jan 05 2016 David Jorm <djorm@iix.net> - 1.4.0-1
+- Upgrade to 1.4.0 (Emu)
 * Tue Nov 03 2015 David Jorm <djorm@iix.net> - 1.3.0-1
 - Upgrade to 1.3.0 (Drake)
 * Thu Sep 03 2015 David Jorm <djorm@iix.net> - 1.2.2-1
