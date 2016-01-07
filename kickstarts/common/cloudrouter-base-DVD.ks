@@ -1,7 +1,7 @@
 # cloudrouter-base.ks
 # base kick start file for all cloudrouter kickstart files
 install
-text
+cmdline
 lang en_US.UTF-8
 keyboard --vckeymap=us --xlayouts='us'
 timezone America/New_York --isUtc --nontp

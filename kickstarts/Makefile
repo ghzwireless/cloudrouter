@@ -1,97 +1,118 @@
 # Copyright 2015 CloudRouter Project Authors.
 
-PRODUCT     := CloudRouter
-VERSION     := 3.0
-OS          := fedora
-OS_VERSION  := 23
-OS_TREE     := http://dl.fedoraproject.org/pub/fedora/linux/releases/23/Server/x86_64/os/
-PROFILE     := minimal
-ISO_PREFIX	:= $(PRODUCT)-$(VERSION)-$(OS)-$(PROFILE)
-ISO_NAME	:= $(ISO_PREFIX).iso
+PRODUCT       := CloudRouter
+VERSION       := 3.0
+OS            := fedora
+OS_VERSION    := 23
+OS_TREE       := http://dl.fedoraproject.org/pub/fedora/linux/releases/23/Server/x86_64/os/
+PROFILE       := minimal
+ISO_PREFIX	  := $(PRODUCT)-$(VERSION)-$(OS)-$(PROFILE)
+ISO_NAME	  := $(ISO_PREFIX).iso
 
-IMG_NAME	:= $(ISO_PREFIX).raw
-IMG_MANIFEST:= $(ISO_PREFIX).manifest
-TMP_NAME    := cloudrouter-virt-tmp
-TMP_FILE    := /tmp/build-rpm-manifest.txt
-TMP_KS      := ksflatten.txt
-LOG_DIR     := $(shell mktemp -d)
-TMP_LOG     := $(LOG_DIR)/$(TMP_NAME).log
-MOCK_ENV    := cloudrouter-mock
-MOCK_CFG    := $(OS)/cloudrouter-mock.cfg
-MOCK_KS     := ks.cfg
-MOCK_ARCH   := x86_64
-AMI_IMG_NAME:= $(PRODUCT)-$(VERSION)-$(OS)-ami
+IMG_NAME	  := $(ISO_PREFIX).raw
+IMG_MANIFEST  := $(ISO_PREFIX).manifest
+AMI_IMG_NAME  := $(PRODUCT)-$(VERSION)-$(OS)-ami
 
+# This is a file from inside the built image and it is defined
+# in the kickstart file as part of a post-build action.
+TMP_FILE      := /tmp/build-rpm-manifest.txt
 
-# Args: BASE_DISTRO BASE_VERSION IMAGE_NAME
-livecd: 
-	ksflatten -c cloudrouter-$(OS)-live.ks -o $(TMP_KS)
-	sudo livecd-creator \
-	--verbose \
-	--product="$(PRODUCT) $(VERSION)" \
-	--config=$(TMP_KS) \
-	--releasever="$(VERSION)" \
-	--fslabel="$(PRODUCT)-Live-$(VERSION)-$(OS)" \
-	--title "$(PRODUCT) Live $(VERSION) $(OS)" \
-	--cache=/var/cache/live
+TMP_NAME      := cloudrouter-virt-tmp
+TMP_KS        := ksflatten.txt
+
+LOG_DIR       := $(shell mktemp -d)
+TMP_LOG       := $(LOG_DIR)/$(TMP_NAME).log
+
+MOCK_ENV      := cloudrouter-mock
+MOCK_CFG      := $(OS)/cloudrouter-mock.cfg
+MOCK_KS       := ks.cfg
+MOCK_ARCH     := x86_64
+
+# These need to match up with the values specified in /etc/libvirt/qemu.conf
+VIRT_USER  := root
+VIRT_GROUP := root
+
+all: livecd virt-img docker-img isobuild amibuild
+
+# serial output will be logged to a /tmp file as jenkins runs without tty.
+virt-img: KS_FILE=cloudrouter-$(OS)-cloud-$(PROFILE).ks
+virt-img: $(IMG_MANIFEST) $(IMG_NAME).xz
+
+## the output .tar.xz can be used directly in a Dockerfile or used with docker import cmd
+docker-img: KS_FILE=cloudrouter-$(OS)-docker.ks
+docker-img: $(ISO_PREFIX)-docker.tar.xz $(ISO_PREFIX).manifest Dockerfile
+
+amibuild: KS_FILE=cloudrouter-$(OS)-ami.ks
+amibuild: $(AMI_IMG_NAME).xz
+
+$(AMI_IMG_NAME).xz: $(AMI_IMG_NAME)
+	xz --verbose --force $<
+
+$(AMI_IMG_NAME): $(AMI_IMG_NAME).raw
+	mv -f $< $@	
+
+%.raw.xz: %.raw %.manifest
+	xz --verbose --force $<
+
+%.manifest: %.raw
+	virt-cat --connect qemu:///system $^ $(TMP_FILE) > $@
 
 # virt-install takes longer when nested KVM is unsupported.
-# Setting max wait time to 4h.
-# serial output will be logged to a /tmp file as jenkins runs without tty.
-virt-img: 
-	ksflatten -c cloudrouter-$(OS)-cloud-$(PROFILE).ks -o $(TMP_KS)
-	touch $(TMP_LOG)
-	chmod 777 $(TMP_LOG)
+# Setting max wait time to 6h.
+# serial output will be logged to a temp file as jenkins runs without tty.
+%.raw: $(TMP_LOG) $(TMP_KS)
 	virt-install \
-        --connect qemu:///system \
-	--name=$(TMP_NAME) \
-	--ram=2048 \
-	--vcpus=2 \
-	--initrd-inject=$(TMP_KS) \
-	--extra-args="inst.ks=file:/$(TMP_KS) console=tty0 console=ttyS0,115200" \
-	--disk $(IMG_NAME),size=6,format=raw \
-	--location=$(OS_TREE) \
-	--network bridge=virbr0 \
-	--nographics \
-	--noreboot \
-	--wait 300 \
-	--serial file,path=$(TMP_LOG) \
-	--noautoconsole
-	virt-cat --connect qemu:///system $(IMG_NAME) $(TMP_FILE) > $(IMG_MANIFEST)
-	xz --verbose --force $(IMG_NAME)
+	  --connect qemu:///system \
+	  --name=$(TMP_NAME) \
+	  --memory 2048 \
+	  --cpu host \
+	  --vcpus 2 \
+	  --os-type=linux \
+	  --initrd-inject=$(TMP_KS) \
+	  --extra-args="inst.ks=file:/$(TMP_KS) console=tty0 console=ttyS0,115200" \
+	  --disk $@,size=6,format=raw \
+	  --location=$(OS_TREE) \
+	  --network bridge=virbr0 \
+	  --nographics \
+	  --noreboot \
+	  --wait 300 \
+	  --serial file,path=$(TMP_LOG)
 
-# virt-install takes longer when done on nested KVM
-# setting max wait time to 4h
-# the output .tar.xz can be used directly in a Dockerfile or used with docker import cmd
-docker-img:
-	ksflatten -c cloudrouter-$(OS)-docker.ks -o $(TMP_KS)
-	virt-install \
-        --connect qemu:///system \
-	--name=$(TMP_NAME) \
-	--ram=2048 \
-	--cpu=host --vcpus=2 \
-	--os-type=linux \
-	--initrd-inject=$(TMP_KS) \
-	--extra-args="inst.ks=file:/$(TMP_KS) console=tty0 console=ttyS0,115200" \
-	--disk $(IMG_NAME),size=6,format=raw \
-	--location=$(OS_TREE) \
-	--nographics \
-	--noreboot \
-	--wait 300 \
-	--serial file,path=$(TMP_LOG)
-	virt-cat --connect qemu:///system $(IMG_NAME) $(TMP_FILE) > $(IMG_MANIFEST)
-	virt-tar-out -a $(IMG_NAME) / - | xz --best > $(ISO_PREFIX)-docker.tar.xz
+%-docker.tar.xz: %.raw
+	virt-tar-out -a $< / - | xz --best > $@
+
+Dockerfile:
 	echo "From scratch" > Dockerfile
 	echo "MAINTAINER Jay Turner<jturner@iix.net>" >> Dockerfile
 	echo "ADD $(ISO_PREFIX)-docker.tar.xz /" >> Dockerfile
 
+$(TMP_KS):
+	ksflatten -c $(KS_FILE) -o $@
+
+$(TMP_LOG):
+	chown -R $(VIRT_USER):$(VIRT_GROUP) $(LOG_DIR)
+	touch $(TMP_LOG)
+	chown $(VIRT_USER):$(VIRT_GROUP) $(TMP_LOG)
+
+# Args: BASE_DISTRO BASE_VERSION IMAGE_NAME
+livecd: KS_FILE = cloudrouter-$(OS)-live.ks
+livecd: $(TMP_KS)
+	sudo livecd-creator \
+	  --verbose \
+	  --product="$(PRODUCT) $(VERSION)" \
+	  --config=$(TMP_KS) \
+	  --releasever="$(VERSION)" \
+	  --fslabel="$(PRODUCT)-Live-$(VERSION)-$(OS)" \
+	  --title "$(PRODUCT) Live $(VERSION) $(OS)" \
+	  --cache=/var/cache/live
+
 # isobuild target to generate DVD iso for CloudRouter
 # this is based on mock and pungi
 # Refer: http://fedoraproject.org/wiki/How_to_create_a_Fedora_install_ISO_for_testing
-
+isobuild: KS_FILE=cloudrouter-$(OS)-DVD.ks
 isobuild:
 	$(eval VERSION=`echo $(VERSION) | cut -f1 -d"."`)
-	ksflatten -c cloudrouter-$(OS)-DVD.ks -o $(MOCK_KS)
+	ksflatten -c $(KS_FILE) -o $(MOCK_KS)
 	sudo cp $(MOCK_CFG) /etc/mock/
 	sudo mock -r $(MOCK_ENV) clean
 	sudo mock -r $(MOCK_ENV) init
@@ -111,45 +132,9 @@ isobuild:
 		--name $(PRODUCT) --ver $(VERSION) -c /$(MOCK_KS)"
 	sudo mock -r $(MOCK_ENV) --copyout /$(VERSION)/$(MOCK_ARCH)/iso/*DVD*.iso ./CloudRouter-$(OS)-$(VERSION)-DVD-$(MOCK_ARCH).iso
 
-
-# virt-install takes longer when nested KVM is unsupported.
-# Setting max wait time to 4h.
-# serial output will be logged to a /tmp file as jenkins runs without tty.
-# NOTE :: EC2 doesn't like when the bootloader is grub or grub2.
-# Based on https://git.fedorahosted.org/cgit/spin-kickstarts.git/tree/fedora-cloud-base.ks?h=f22
-# extlinux will be the bootloader
-# CentOS - works with grub2 on amazon ec2
-amibuild:
-	ksflatten -c cloudrouter-$(OS)-ami.ks -o $(TMP_KS)
-ifeq ($(OS),fedora)
-	sed -i '/^bootloader/s/$$/ --timeout=1 --extlinux /' $(TMP_KS)
-else
-	echo .
-endif
-	virt-install \
-        --connect qemu:///system \
-	--name=$(TMP_NAME) \
-	--ram=2048 \
-	--cpu=host --vcpus=2 \
-	--os-type=linux \
-	--initrd-inject=$(TMP_KS) \
-	--extra-args="inst.ks=file:/$(TMP_KS) console=tty0 console=ttyS0,115200" \
-	--disk $(AMI_IMG_NAME),size=6,format=raw \
-	--location=$(OS_TREE) \
-	--nographics \
-	--noreboot \
-	--wait 300 \
-	--serial file,path=$(TMP_LOG)
-	virt-cat --connect qemu:///system $(AMI_IMG_NAME) $(TMP_FILE) > $(IMG_MANIFEST)
-	xz --verbose --force $(AMI_IMG_NAME)
-
-
-all: livecd virt-img docker-img isobuild amibuild
-
 # Phony targets for cleanup and similar uses
 #
 # .PHONY: clean
-
 clean:
 	sudo rm -f *.log *.iso *.raw *.xz $(TMP_KS) *.manifest Dockerfile
 	virsh --connect qemu:///system destroy $(TMP_NAME) || true

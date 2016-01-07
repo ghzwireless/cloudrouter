@@ -1,13 +1,13 @@
 %include fedora/cloudrouter-repos.ks
 %include common/cloudrouter-docker-base.ks
 
-%packages --excludedocs --instLangs=en --nocore --nobase
+%packages --excludedocs --instLangs=en
 %include common/docker-package-list
 
 cloudrouter-fedora-release
 cloudrouter-fedora-release-notes
 dnf
-dnf-yum  
+dnf-yum
 %end
 
 %post
