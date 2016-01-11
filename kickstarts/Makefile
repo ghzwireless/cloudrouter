@@ -38,7 +38,7 @@ all: livecd virt-img docker-img isobuild amibuild
 
 # serial output will be logged to a /tmp file as jenkins runs without tty.
 virt-img: KS_FILE=cloudrouter-$(OS)-cloud-$(PROFILE).ks
-virt-img: $(IMG_NAME).raw.xz $(IMG_NAME).manifest $(IMG_NAME).vmdk
+virt-img: $(IMG_NAME).manifest $(IMG_NAME).vmdk $(IMG_NAME).raw.xz
 
 ## the output .tar.xz can be used directly in a Dockerfile or used with docker import cmd
 docker-img: KS_FILE=cloudrouter-$(OS)-docker.ks
@@ -142,6 +142,6 @@ $(TMP_LOG):
 #
 # .PHONY: clean
 clean:
-	sudo rm -f *.log *.iso *.raw *.xz $(TMP_KS) *.manifest Dockerfile
+	sudo rm -f *.log *.iso *.raw *.xz *.vmdk $(TMP_KS) *.manifest Dockerfile
 	virsh --connect qemu:///system destroy $(TMP_NAME) || true
 	virsh --connect qemu:///system undefine $(TMP_NAME) || true
