@@ -1,5 +1,6 @@
 %include fedora/cloudrouter-repos.ks
 %include common/cloudrouter-docker-base.ks
+%include fedora/cloudrouter-fedora-fix.ks.in
 
 %packages --excludedocs --instLangs=en
 %include common/docker-package-list
