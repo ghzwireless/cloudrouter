@@ -22,6 +22,7 @@ capstan
 dpdk
 exabgp
 fastnetmon
+isdx-demo
 libfixbuf
 libtrace
 mininet
@@ -30,6 +31,7 @@ opendaylight-lithium
 openvpn
 openvswitch
 ostinato
+pktgen-dpdk
 pmacct
 python-exabgp
 python-openvswitch
