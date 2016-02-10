@@ -1,7 +1,7 @@
 %include centos/cloudrouter-repos.ks
 %include common/cloudrouter-docker-base.ks
 
-%packages --excludedocs --instLangs=en --nocore --nobase
+%packages --excludedocs --instLangs=en
 %include common/docker-package-list
 
 cloudrouter-centos-release

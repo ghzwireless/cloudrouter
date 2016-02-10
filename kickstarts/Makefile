@@ -11,7 +11,7 @@ ISO_PREFIX	    := $(PRODUCT)-$(VERSION)-$(OS)-$(PROFILE)
 ISO_NAME	    := $(ISO_PREFIX).iso
 IMG_NAME        := $(ISO_PREFIX)
 AMI_IMG_NAME    := $(PRODUCT)-$(VERSION)-$(OS)-ami
-DOCKER_IMG_NAME := $(ISO_PREFIX)-docker
+DOCKER_IMG_NAME := $(PRODUCT)-$(VERSION)-$(OS)-docker
 
 # This is a file from inside the built image and it is defined
 # in the kickstart file as part of a post-build action.
