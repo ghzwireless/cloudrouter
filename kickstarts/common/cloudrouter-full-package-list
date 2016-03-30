@@ -9,6 +9,7 @@ ipsec-tools
 iputils
 mtr
 net-snmp-utils
+openvpn
 radvd
 strongswan
 tcpdump
@@ -27,8 +28,7 @@ libfixbuf
 libtrace
 mininet
 onos
-opendaylight-lithium
-openvpn
+opendaylight-beryllium
 openvswitch
 ostinato
 pktgen-dpdk

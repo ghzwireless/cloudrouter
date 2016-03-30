@@ -1,5 +1,5 @@
 # including CloudRouter repo
-repo --name=cloudrouter --baseurl=https://repo.cloudrouter.org/centos/7.2/x86_64/
+repo --name=cloudrouter --baseurl=https://repo.cloudrouter.org/repo/3/centos/7/x86_64/
 
 # including CentOS 7 repos
 repo --name=base --mirrorlist=http://mirrorlist.centos.org/?release=7&arch=x86_64&repo=os&infra=$infra
