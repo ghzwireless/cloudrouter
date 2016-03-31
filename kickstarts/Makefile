@@ -34,6 +34,17 @@ VM_DISK_SIZE    := 6
 VIRT_USER       := root
 VIRT_GROUP      := root
 
+# Specifying an HTTP proxy speeds up repeated virtual image builds considerably.
+# To use this feature, specify the PROXY_URL from the command line like this:
+#   # make virt-img PROXY_URL=http://127.0.0.1:3128
+ifdef PROXY_URL
+PROXY_VIRT_ARGS := inst.proxy=$(PROXY_URL)
+PROXY_LIVE_ARGS := HTTP_PROXY=$(PROXY_URL)
+else
+PROXY_VIRT_ARGS :=
+PROXY_LIVE_ARGS :=
+endif
+
 all: livecd virt-img docker-img isobuild amibuild
 
 # serial output will be logged to a /tmp file as jenkins runs without tty.
@@ -50,7 +61,8 @@ amibuild: $(AMI_IMG_NAME).xz
 # Args: BASE_DISTRO BASE_VERSION IMAGE_NAME
 livecd: KS_FILE = cloudrouter-$(OS)-live.ks
 livecd: $(TMP_KS)
-	sudo livecd-creator \
+	sudo $(PROXY_LIVE_ARGS) \
+	  livecd-creator \
 	  --verbose \
 	  --product="$(PRODUCT) $(VERSION)" \
 	  --config=$(TMP_KS) \
@@ -116,7 +128,7 @@ $(AMI_IMG_NAME).xz: $(AMI_IMG_NAME).raw.xz
 	  --vcpus 2 \
 	  --os-type=linux \
 	  --initrd-inject=$(TMP_KS) \
-	  --extra-args="inst.ks=file:/$(TMP_KS) console=tty0 console=ttyS0,115200" \
+	  --extra-args="inst.ks=file:/$(TMP_KS) $(PROXY_VIRT_ARGS) console=tty0 console=ttyS0,115200" \
 	  --disk $@,size=$(VM_DISK_SIZE),format=raw \
 	  --location=$(OS_TREE) \
 	  --network bridge=virbr0 \
@@ -135,6 +147,9 @@ Dockerfile:
 
 $(TMP_KS):
 	ksflatten -c $(KS_FILE) -o $@
+ifdef PROXY_URL
+	sed -i 's|^repo --.*|& --proxy=$(PROXY_URL)|' $@
+endif
 
 $(TMP_LOG):
 	chown -R $(VIRT_USER):$(VIRT_GROUP) $(LOG_DIR)
