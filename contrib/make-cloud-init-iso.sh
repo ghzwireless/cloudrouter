@@ -37,7 +37,7 @@ if [ ! -n "${PRIKEY}" ] && [ ! -n "${PUBKEY}" ]; then
     PUBKEY="${PRIKEY}.pub"
 fi
 
-for cmd in genisoimage ssh-keygen makepasswd; do
+for cmd in genisoimage ssh-keygen python3; do
     type $cmd > /dev/null 2>&1 \
         || { echo >&2 "[ERROR] $cmd command not found."; exit 1; }
 done
@@ -76,7 +76,7 @@ users:
 EOF
 
 if [ "$SKIPUSERPASS" -eq "0" ]; then
-    password_hash=$(makepasswd -e sha512 -p ${USERPASS}|awk -F ' ' '{print $2}') 
+    password_hash=$(python3 -c "import crypt; print(crypt.crypt('${USERPASS}', crypt.mksalt(crypt.METHOD_SHA512)))") 
     cat >> ${WORKING_DIR}/user-data << EOF
     lock-passwd: False
     passwd: ${password_hash}
