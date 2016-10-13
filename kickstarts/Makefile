@@ -1,10 +1,10 @@
 # Copyright 2015 CloudRouter Project Authors.
 
 PRODUCT         := CloudRouter
-VERSION         := 3.0
+VERSION         := 4.0
 OS              := fedora
-OS_VERSION      := 23
-OS_TREE         := http://dl.fedoraproject.org/pub/fedora/linux/releases/23/Server/x86_64/os/
+OS_VERSION      := 24
+OS_TREE         := http://dl.fedoraproject.org/pub/fedora/linux/releases/24/Server/x86_64/os/
 PROFILE         := minimal
 
 ISO_PREFIX	    := $(PRODUCT)-$(VERSION)-$(OS)-$(PROFILE)
@@ -13,26 +13,12 @@ IMG_NAME        := $(ISO_PREFIX)
 AMI_IMG_NAME    := $(PRODUCT)-$(VERSION)-$(OS)-ami
 DOCKER_IMG_NAME := $(PRODUCT)-$(VERSION)-$(OS)-docker
 
-# This is a file from inside the built image and it is defined
-# in the kickstart file as part of a post-build action.
-TMP_FILE        := /tmp/build-rpm-manifest.txt
-
-TMP_NAME        := cloudrouter-virt-tmp
-TMP_KS          := ksflatten.txt
-
-LOG_DIR         := $(shell mktemp -d)
-TMP_LOG         := $(LOG_DIR)/$(TMP_NAME).log
-
 MOCK_ENV        := cloudrouter-mock
 MOCK_CFG        := $(OS)/cloudrouter-mock.cfg
 MOCK_KS         := ks.cfg
 MOCK_ARCH       := x86_64
 
-VM_DISK_SIZE    := 6
-
-# These need to match up with the values specified in /etc/libvirt/qemu.conf
-VIRT_USER       := root
-VIRT_GROUP      := root
+VM_DISK_SIZE    := 10
 
 # Specifying an HTTP proxy speeds up repeated virtual image builds considerably.
 # To use this feature, specify the PROXY_URL from the command line like this:
@@ -60,12 +46,12 @@ amibuild: $(AMI_IMG_NAME).xz
 
 # Args: BASE_DISTRO BASE_VERSION IMAGE_NAME
 livecd: KS_FILE = cloudrouter-$(OS)-live.ks
-livecd: $(TMP_KS)
+livecd: $(KS_FILE).ks.cfg
 	sudo $(PROXY_LIVE_ARGS) \
 	  livecd-creator \
 	  --verbose \
 	  --product="$(PRODUCT) $(VERSION)" \
-	  --config=$(TMP_KS) \
+	  --config=$< \
 	  --releasever="$(VERSION)" \
 	  --fslabel="$(PRODUCT)-Live-$(VERSION)-$(OS)" \
 	  --title "$(PRODUCT) Live $(VERSION) $(OS)" \
@@ -107,8 +93,10 @@ $(AMI_IMG_NAME).xz: $(AMI_IMG_NAME).raw.xz
 %.raw.xz: %.raw
 	xz --verbose --force --best -k $<
 
+# /tmp/build-rpm-manifest.txt is a file from inside the built image and
+# it is defined in the kickstart file as part of a post-build action.
 %.manifest: %.raw
-	virt-cat --connect qemu:///system $^ $(TMP_FILE) > $@
+	virt-cat $^ /tmp/build-rpm-manifest.txt > $@
 
 %.vmdk.xz: %.vmdk
 	xz --verbose --force --best -k $<
@@ -119,47 +107,43 @@ $(AMI_IMG_NAME).xz: $(AMI_IMG_NAME).raw.xz
 # virt-install takes longer when nested KVM is unsupported.
 # Setting max wait time to 6h.
 # serial output will be logged to a temp file as jenkins runs without tty.
-%.raw: $(TMP_LOG) $(TMP_KS)
+%.raw: %.ks.cfg
+	virsh destroy $(basename $@) || true
+	virsh undefine $(basename $@) || true
 	virt-install \
-	  --connect qemu:///system \
-	  --name=$(TMP_NAME) \
+	  --name=$(basename $@) \
 	  --memory 2048 \
 	  --cpu host \
 	  --vcpus 2 \
+	  --accelerate \
 	  --os-type=linux \
-	  --initrd-inject=$(TMP_KS) \
-	  --extra-args="inst.ks=file:/$(TMP_KS) $(PROXY_VIRT_ARGS) console=tty0 console=ttyS0,115200" \
+	  --initrd-inject=$< \
+	  --extra-args="inst.ks=file:/$< $(PROXY_VIRT_ARGS) console=tty0 console=ttyS0,115200" \
 	  --disk $@,size=$(VM_DISK_SIZE),format=raw \
 	  --location=$(OS_TREE) \
 	  --network bridge=virbr0 \
 	  --nographics \
 	  --noreboot \
 	  --wait 300 \
-	  --serial file,path=$(TMP_LOG)
+	  --serial file,path=/tmp/$(basename $@).log
+	mv /tmp/$(basename $@).log ./
 
 %.tar.xz: %.raw
 	virt-tar-out -a $< / - | xz --best > $@
 
 Dockerfile:
 	echo "From scratch" > Dockerfile
-	echo "MAINTAINER Jay Turner<jturner@iix.net>" >> Dockerfile
-	echo "ADD $(ISO_PREFIX)-docker.tar.xz /" >> Dockerfile
+	echo "MAINTAINER Jay Turner<jturner@console.to>" >> Dockerfile
+	echo "ADD $(DOCKER_IMG_NAME).tar.xz /" >> Dockerfile
 
-$(TMP_KS):
+%.ks.cfg:
 	ksflatten -c $(KS_FILE) -o $@
 ifdef PROXY_URL
 	sed -i 's|^repo --.*|& --proxy=$(PROXY_URL)|' $@
 endif
 
-$(TMP_LOG):
-	chown -R $(VIRT_USER):$(VIRT_GROUP) $(LOG_DIR)
-	touch $(TMP_LOG)
-	chown $(VIRT_USER):$(VIRT_GROUP) $(TMP_LOG)
-
 # Phony targets for cleanup and similar uses
 #
 # .PHONY: clean
 clean:
-	sudo rm -f *.log *.iso *.raw *.xz *.vmdk $(TMP_KS) *.manifest Dockerfile
-	virsh --connect qemu:///system destroy $(TMP_NAME) || true
-	virsh --connect qemu:///system undefine $(TMP_NAME) || true
+	rm -f *.log *.iso *.raw *.xz *.vmdk *.manifest *.ks.cfg Dockerfile /tmp/$(PRODUCT)*.log
