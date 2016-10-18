@@ -7,16 +7,16 @@ OS_VERSION      := 24
 OS_TREE         := http://dl.fedoraproject.org/pub/fedora/linux/releases/24/Server/x86_64/os/
 PROFILE         := minimal
 
-ISO_PREFIX	    := $(PRODUCT)-$(VERSION)-$(OS)-$(PROFILE)
-ISO_NAME	    := $(ISO_PREFIX).iso
-IMG_NAME        := $(ISO_PREFIX)
-AMI_IMG_NAME    := $(PRODUCT)-$(VERSION)-$(OS)-ami
-DOCKER_IMG_NAME := $(PRODUCT)-$(VERSION)-$(OS)-docker
+ISO_PREFIX      := $(PRODUCT)-$(VERSION)-$(OS)-$(PROFILE)
+ISO_NAME        := $(ISO_PREFIX).iso
+IMG_NAME        := cloudrouter-$(OS)-cloud-$(PROFILE)
 
 MOCK_ENV        := cloudrouter-mock
 MOCK_CFG        := $(OS)/cloudrouter-mock.cfg
 MOCK_KS         := ks.cfg
 MOCK_ARCH       := x86_64
+
+THREADS         := 4
 
 VM_DISK_SIZE    := 10
 
@@ -34,19 +34,15 @@ endif
 all: livecd virt-img docker-img isobuild amibuild
 
 # serial output will be logged to a /tmp file as jenkins runs without tty.
-virt-img: KS_FILE=cloudrouter-$(OS)-cloud-$(PROFILE).ks
 virt-img: $(IMG_NAME).manifest $(IMG_NAME).vmdk.xz $(IMG_NAME).raw.xz
 
 ## the output .tar.xz can be used directly in a Dockerfile or used with docker import cmd
-docker-img: KS_FILE=cloudrouter-$(OS)-docker.ks
-docker-img: $(DOCKER_IMG_NAME).tar.xz Dockerfile
+docker-img: cloudrouter-$(OS)-docker.tar.xz Dockerfile
 
-amibuild: KS_FILE=cloudrouter-$(OS)-ami.ks
-amibuild: $(AMI_IMG_NAME).xz
+amibuild: cloudrouter-$(OS)-ami.xz
 
 # Args: BASE_DISTRO BASE_VERSION IMAGE_NAME
-livecd: KS_FILE = cloudrouter-$(OS)-live.ks
-livecd: $(KS_FILE).ks.cfg
+livecd: cloudrouter-$(OS)-live.ks.cfg
 	sudo $(PROXY_LIVE_ARGS) \
 	  livecd-creator \
 	  --verbose \
@@ -83,7 +79,7 @@ isobuild:
 		--name $(PRODUCT) --ver $(VERSION) -c /$(MOCK_KS)"
 	sudo mock -r $(MOCK_ENV) --copyout /$(VERSION)/$(MOCK_ARCH)/iso/*DVD*.iso ./CloudRouter-$(OS)-$(VERSION)-DVD-$(MOCK_ARCH).iso
 
-$(AMI_IMG_NAME).xz: $(AMI_IMG_NAME).raw.xz
+cloudrouter-$(OS)-ami.xz: cloudrouter-$(OS)-ami.raw.xz
 	mv -f $< $@	
 
 # The only actual dependency is the .raw file. Because the
@@ -91,7 +87,7 @@ $(AMI_IMG_NAME).xz: $(AMI_IMG_NAME).raw.xz
 #   vmdk tasks must  be completed prior to compression of
 #   the raw file.
 %.raw.xz: %.raw
-	xz --verbose --force --best -k $<
+	xz --threads=$(THREADS) --verbose --force --best -k $<
 
 # /tmp/build-rpm-manifest.txt is a file from inside the built image and
 # it is defined in the kickstart file as part of a post-build action.
@@ -99,7 +95,7 @@ $(AMI_IMG_NAME).xz: $(AMI_IMG_NAME).raw.xz
 	virt-cat $^ /tmp/build-rpm-manifest.txt > $@
 
 %.vmdk.xz: %.vmdk
-	xz --verbose --force --best -k $<
+	xz --threads=$(THREADS) --verbose --force --best -k $<
 
 %.vmdk: %.raw
 	qemu-img convert -O vmdk $< $@
@@ -134,10 +130,10 @@ $(AMI_IMG_NAME).xz: $(AMI_IMG_NAME).raw.xz
 Dockerfile:
 	echo "From scratch" > Dockerfile
 	echo "MAINTAINER Jay Turner<jturner@console.to>" >> Dockerfile
-	echo "ADD $(DOCKER_IMG_NAME).tar.xz /" >> Dockerfile
+	echo "ADD cloudrouter-$(OS)-docker.tar.xz /" >> Dockerfile
 
-%.ks.cfg:
-	ksflatten -c $(KS_FILE) -o $@
+%.ks.cfg: %.ks
+	ksflatten -c $< -o $@
 ifdef PROXY_URL
 	sed -i 's|^repo --.*|& --proxy=$(PROXY_URL)|' $@
 endif
