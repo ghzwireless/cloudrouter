@@ -26,9 +26,10 @@ fastnetmon
 isdx-demo
 libfixbuf
 libtrace
+linkloop
 mininet
 onos
-opendaylight-beryllium
+opendaylight-boron
 openvswitch
 ostinato
 pktgen-dpdk
